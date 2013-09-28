@@ -27,7 +27,7 @@ LFLAGS =
 LIBS = 
 
 # define the C source files
-SRCS = rgb_node.cpp rgb_parse.cpp rgb_fileio.cpp
+SRCS = rgb_node.cpp rgb_extract.cpp rgb_fileio.cpp
 
 # define the C object files 
 #
@@ -72,4 +72,5 @@ depend: $(SRCS)
 # DO NOT DELETE THIS LINE -- make depend needs it
 
 rgb_node.o: include/rgb_node.h
-rgb_fileio.o: include/rgb_fileio.h include/rgb_node.h
+rgb_extract.o: include/rgb_extract.h include/rgb_node.h include/rgb_fileio.h
+rgb_fileio.o: include/rgb_fileio.h

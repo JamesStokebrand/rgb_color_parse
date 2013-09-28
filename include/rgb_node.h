@@ -10,12 +10,37 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
+// rgb_node defines
+const float CONST_RGB_COLOR_VALUE_MIN = 0.0; // Minimum RGB color value
+const float CONST_RGB_COLOR_VALUE_MAX = 1.0; // Maximum RGB color value
+
+// rgb_fileio defines
+const string CONST_STRING_DEFAULT_TEMP_FILE_EXTENTION = "_temp.txt"; // temp file string extention
+const string CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION = "_rgb_nodes.txt"; // standard RGB node file extention
+
+// VRML file defines
+const string CONST_STRING_VRML_KEYWORD = "#VRML";
+const string CONST_STRING_VRML_VER_KEYWORD = "V2.0";
+const string CONST_STRING_VRML_CHARSET_KEYWORD = "utf8";
+const string CONST_STRING_DEF_KEYWORD = "DEF";
+const string CONST_STRING_TRANSFORM_KEYWORD = "Transform";
+const string CONST_STRING_DIFFUSECOLOR_KEYWORD = "diffuseColor";
+
+// CONFIG FILE DEFINES
+const string CONST_STRING_CONFIG_START_KEYWORD = "#START";
+const string CONST_STRING_CONFIG_CURRENT_VERSION = "V001";
+const string CONST_STRING_CONFIG_COMMENT_KEYWORD = "#COMMENT";
+const string CONST_STRING_CONFIG_NUM_NODES_KEYWORD = "#NUM_NODES";
+const string CONST_STRING_CONFIG_NODE_KEYWORD = "#NODE";
+const string CONST_STRING_CONFIG_END_KEYWORD = "#END";
+
 
 /* Exception Handling
-// CALL INFORMATION:
+// Call them similar to this ...
 
 string anError(STRING_error_layer + __PRETTY_FUNCTION__ + ":" + "BLAH");
 throw ErrException(anError);
@@ -37,24 +62,103 @@ private:
    string s;
 };
 
+/* RGB Base includes the following helper methods:
+    - Aid in throwing exceptions.
 
-const float CONST_RGB_COLOR_VALUE_MIN = 0.0; // Minimum RGB color value
-const float CONST_RGB_COLOR_VALUE_MAX = 1.0; // Maximum RGB color value
-const string DEFAULT_TEMP_FILE_EXTENTION = "_temp.txt"; // temp file string extention
-
-
-class rgb_node 
+*/
+class rgb_base 
 {
 public:
-    rgb_node() {
+    rgb_base(const string &current_object) {
+        STRING_error_layer = current_object;
+    };
+
+    void throw_exception(string ss) {
+        stringstream anError;
+        anError << __FILE__ << " at " << __LINE__ << " :" << STRING_error_layer << 
+            ":" << __PRETTY_FUNCTION__ << ": " << ss;
+        throw ErrException(anError.str());        
+    }
+
+    void throw_exception(stringstream ss) {
+        throw_exception(ss.str());
+    };
+
+    string STRING_error_layer;
+
+};
+
+class rgb_state_word 
+{
+public:
+
+    typedef void (rgb_state_word::*STATE)(const string &aWord);
+
+
+    void STATE_verify_required_word(string const &ErrorLayer,
+            const string &aWord,
+            const string &ReqWord,
+            STATE nextState)
+    {
+        if (aWord == ReqWord)
+        {
+            TRAN(nextState);
+        }
+        else
+        {
+
+            // This is a required word!
+            // If it is not found as the first word it is an error.
+            stringstream anError;
+            anError << __FILE__ << " at " << __LINE__ << " :" 
+                << ErrorLayer << ":" << __PRETTY_FUNCTION__ 
+                << ": " << "\"" << aWord << "\" found but expected \""
+                << ReqWord << "\".  Please verify the input file.";
+            throw ErrException(anError.str());
+        }
+    }
+
+
+    // State machine defines.
+    rgb_state_word(STATE init) : state(init) {}
+    virtual ~rgb_state_word() {};
+
+    void TRAN(STATE target) { state = static_cast<STATE>(target);}
+    void process(const string &aWord) { (this->*state)(aWord); }
+    STATE state;
+
+
+
+};
+
+class rgb_state_char
+{
+public:
+    rgb_state_char() {};
+    virtual ~rgb_state_char() {};
+
+    // State machine defines.
+    typedef void (rgb_state_char::*STATE)(const char &aChar);
+    void TRAN(STATE target) { state = static_cast<STATE>(target);}
+    void process(const char &aChar) { (this->*state)(aChar); }
+    STATE state;
+};
+
+class rgb_node : public rgb_base
+{
+public:
+    rgb_node() : rgb_base("RGB_NODE") {
         clear(); 
-        STRING_error_layer = "RGB_NODE:";
     }
 
     void clear() { 
         // Inits everything to zero and clears the node name
         red = blue = green = 0.0;
         name.clear();
+    }
+
+    void set_name(string aName) {
+        name = aName;
     }
 
     void set_red(float const &A) {
@@ -69,21 +173,25 @@ public:
         set_color(blue,A);
     }
 
-    float get_red() {
+    string get_name() const {
+        return name;
+    }
+
+    float get_red() const {
         return red;
     }
 
-    float get_green() {
+    float get_green() const {
         return green;
     }
 
-    float get_blue() {
+    float get_blue() const {
         return blue;
     }
 
     friend ostream& operator<<(ostream &out, const rgb_node &A);
 
-    bool operator == (rgb_node const &A) {
+    bool operator == (rgb_node const &A) const {
         if ((A.red == red) && 
             (A.green == green) && 
             (A.blue == blue))
@@ -110,26 +218,24 @@ private:
         if (B < CONST_RGB_COLOR_VALUE_MIN) 
         {
             stringstream anError;
-            anError <<  STRING_error_layer <<  __PRETTY_FUNCTION__ << ":Value is below " 
-                << CONST_RGB_COLOR_VALUE_MIN << " and thus invalid.  Value not set.";
-            throw ErrException(anError.str());
+            anError << "Value is below " << CONST_RGB_COLOR_VALUE_MIN << 
+                    " and thus invalid.  Value not set.";
+            throw_exception(anError.str());
         } else if (B > CONST_RGB_COLOR_VALUE_MAX) {
             stringstream anError;
-            anError <<  STRING_error_layer <<  __PRETTY_FUNCTION__ << ":Value is above " 
-                << CONST_RGB_COLOR_VALUE_MAX << " and thus invalid.  Value not set.";
-            throw ErrException(anError.str());
+            anError << "Value is above " << CONST_RGB_COLOR_VALUE_MAX << 
+                    " and thus invalid.  Value not set.";
+            throw_exception(anError.str());
 
         }
         A = B; // success
     }
-
 
     float red;
     float green;
     float blue;
     string name;
 
-    string STRING_error_layer;
 };
 
 #endif
