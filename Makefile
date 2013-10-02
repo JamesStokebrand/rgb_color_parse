@@ -27,7 +27,12 @@ LFLAGS =
 LIBS = 
 
 # define the C source files
-SRCS = rgb_node.cpp rgb_extract.cpp rgb_fileio.cpp rgb_replace.cpp rgb_configio.cpp
+SRCS =  rgb_node.cpp \
+        rgb_extract.cpp \
+        rgb_fileio.cpp \
+        rgb_configio.cpp \
+        rgb_replace.cpp \
+        rgb_rollback.cpp 
 
 # define the C object files 
 #
@@ -75,6 +80,9 @@ rgb_node.o: include/rgb_node.h
 rgb_extract.o: include/rgb_extract.h include/rgb_node.h include/rgb_fileio.h
 rgb_extract.o: include/rgb_configio.h
 rgb_fileio.o: include/rgb_fileio.h
+rgb_configio.o: include/rgb_configio.h
 rgb_replace.o: include/rgb_replace.h include/rgb_node.h include/rgb_fileio.h
 rgb_replace.o: include/rgb_configio.h include/rgb_extract.h
-rgb_configio.o: include/rgb_configio.h
+rgb_rollback.o: include/rgb_rollback.h include/rgb_node.h
+rgb_rollback.o: include/rgb_fileio.h include/rgb_configio.h
+rgb_rollback.o: include/rgb_replace.h

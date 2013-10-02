@@ -49,6 +49,7 @@ public:
     void write(char const &A);
     void overwrite();
     void close();
+    void erase();
 
 private:
     string   source_file_name;

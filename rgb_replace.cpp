@@ -16,11 +16,6 @@
 #include "include/rgb_configio.h"
 #endif
 
-#if 0
-#define DEBUG_STATE cout << __FUNCTION__  << " " << word_accumulate <<  endl;
-#else
-#define DEBUG_STATE //
-#endif
 
 void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
 {
@@ -51,7 +46,8 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception("Unable to allocate rgb_fileio object.", __PRETTY_FUNCTION__);
+        throw_exception("Unable to allocate rgb_fileio object.", 
+                __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     // Extract existing nodes from source file.
@@ -70,7 +66,8 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
         // Nothing to do.  Source RGB nodes match the ones in the config file.
         //  This is an error.
         throw_exception("RGB nodes in \"" + rgb_file + "\" match the RGB nodes "
-            + "in \"" + rgb_config_file + "\".  Nothing to do.", __PRETTY_FUNCTION__);
+            + "in \"" + rgb_config_file + "\".  Nothing to do.", 
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
 // Debug
@@ -92,7 +89,8 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception("Unable to allocate rgb_fileio object.", __PRETTY_FUNCTION__);
+        throw_exception("Unable to allocate rgb_fileio object.", 
+                __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     srcFileIO->clear();
@@ -284,7 +282,7 @@ void rgb_replace::STATE_NOOP(const char &aChar)
 }
 
 
-#if 1
+#if 0
 int main(int argc, char *argv[])
 {
     rgb_replace  rgbReplace; 

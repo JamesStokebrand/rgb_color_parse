@@ -6,6 +6,13 @@
 #include "include/rgb_configio.h"
 #endif
 
+#if 0
+#define DEBUG_BLAH cout << __PRETTY_FUNCTION__ << aWord << endl;
+#else
+#define DEBUG_BLAH //
+#endif
+
+
 void rgb_configio::parse_node_config(string const &aNodeConfig,
     vector<rgb_node> &node_vector) 
 {
@@ -22,10 +29,10 @@ void rgb_configio::parse_node_config(string const &aNodeConfig,
         // First word is the #START keyword.  This is a string containing
         //  a RGB node config.
 
-        // Seek to the beginning
-        inputSS.seekp(0);
+        // Send this first word to the state machine.
+        process(aWord);
 
-        // Process the string
+        // Process the rest of the string
         while (inputSS >> aWord)
         {
             process(aWord);
@@ -41,7 +48,7 @@ void rgb_configio::parse_node_config(string const &aNodeConfig,
             // Unable to open the config file for reading....
             //  This is an error.
             string anError("Unable to open node config for reading.  Check the input config file.");
-            throw_exception(anError.c_str(), __PRETTY_FUNCTION__);
+            throw_exception(anError.c_str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
         }
 
         while ((node_config_file >> aWord) &&
@@ -98,9 +105,9 @@ void rgb_configio::create_node_config(vector<rgb_node> const &node_vector,
         config << node_vector[ii].get_name() << " ";
         config << node_vector[ii].get_red() << " ";
         config << node_vector[ii].get_green() << " ";
-        config << node_vector[ii].get_blue() << "\n";
+        config << node_vector[ii].get_blue() << endl;
     }
-    config << CONST_STRING_CONFIG_END_KEYWORD << "\n" << "\n";
+    config << CONST_STRING_CONFIG_END_KEYWORD << endl << endl;
 
     aNodeConfig = config.str();
 }
@@ -123,6 +130,7 @@ void rgb_configio::write_node_config_file(vector<rgb_node> const &node_vector,
 
 void rgb_configio::STATE_seek_START(string const &aWord)
 {
+DEBUG_BLAH
     STATE_verify_required_word(
         STRING_error_layer,
         aWord,
@@ -132,6 +140,7 @@ void rgb_configio::STATE_seek_START(string const &aWord)
 
 void rgb_configio::STATE_seek_CONFIG_VERSION(string const &aWord)
 {
+DEBUG_BLAH
     STATE_verify_required_word(
         STRING_error_layer,
         aWord,
@@ -141,6 +150,7 @@ void rgb_configio::STATE_seek_CONFIG_VERSION(string const &aWord)
 
 void rgb_configio::STATE_seek_NUM_NODES_KEYWORD(string const &aWord)
 {
+DEBUG_BLAH
     if (aWord == CONST_STRING_CONFIG_NUM_NODES_KEYWORD)
     {
         // #NUM_NODES keyword found ... read the number of

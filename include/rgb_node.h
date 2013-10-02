@@ -45,6 +45,11 @@ endl << "FILE: " << debug_file_name << " line " << \
 debug_line_number << endl <<  "METHOD: " << \
 debug_method_name << endl << STRING_error_layer << ":ERROR_MSG: " 
 
+#if 0
+#define DEBUG_STATE cout << __FUNCTION__  << " " << word_accumulate <<  endl;
+#else
+#define DEBUG_STATE //
+#endif
 
 /* Exception Handling
 // Call them similar to this ...
@@ -82,15 +87,20 @@ public:
 
     void throw_exception(string ss, 
             string debug_method_name,
-            string debug_file_name = __FILE__, 
-            int debug_line_number = __LINE__) {
+            string debug_file_name, 
+            int debug_line_number)
+    {
         stringstream anError;
         anError << EXCEPTION_STRING_PREAMBLE << ss << endl;
         throw ErrException(anError.str());        
     }
 
-    void throw_exception(stringstream ss, string debug_method_name) {
-        throw_exception(ss.str(), debug_method_name.c_str());
+    void throw_exception(stringstream ss,
+            string debug_method_name,
+            string debug_file_name, 
+            int debug_line_number)
+    {
+        throw_exception(ss.str(), debug_method_name.c_str(), debug_file_name, debug_line_number);
     };
 
     string STRING_error_layer;
@@ -284,12 +294,12 @@ private:
             stringstream anError;
             anError << "Value is below " << CONST_RGB_COLOR_VALUE_MIN << 
                     " and thus invalid.  Value not set.";
-            throw_exception(anError.str(), __PRETTY_FUNCTION__);
+            throw_exception(anError.str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
         } else if (B > CONST_RGB_COLOR_VALUE_MAX) {
             stringstream anError;
             anError << "Value is above " << CONST_RGB_COLOR_VALUE_MAX << 
                     " and thus invalid.  Value not set.";
-            throw_exception(anError.str(), __PRETTY_FUNCTION__);
+            throw_exception(anError.str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
 
         }
         A = B; // success

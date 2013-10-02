@@ -25,8 +25,6 @@ public:
         parse_config_number_of_nodes = 0;
     }
 
-    bool read_word(string &aWord);
-
     // Takes in a string containing the node config and returns a filled rgb node vector
     //  from it.
     void parse_node_config(string const &aNodeConfig, vector<rgb_node> &node_vector);
@@ -42,6 +40,8 @@ public:
             string const &output_file);
 
 private:
+    bool read_word(string &aWord);
+
     void STATE_seek_START(string const &aWord);
     void STATE_seek_CONFIG_VERSION(string const &aWord);
     void STATE_seek_NUM_NODES_KEYWORD(string const &aWord);

@@ -37,7 +37,7 @@ void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_lis
 
 #if 0
     cout << "Number of nodes found: " << rgb_list.size() << endl;
-    for (vector<rgb_node>::iterator it = rgb_list.begin(); it < rgb_list.end(); it++)
+    for (vector<rgb_node>::iterator it = rgb_list.begin(); it != rgb_list.end(); it++)
     {
         cout << *it << endl;
     }
@@ -48,7 +48,7 @@ void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_lis
         // No RGB nodes extracted ... this is an error.
         string anError("No rgb nodes were extracted from \"" + in_file
             + "\".  Please check your input file.");
-        throw_exception(anError, __PRETTY_FUNCTION__);
+        throw_exception(anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     // Success.  Copy the vector list to the input parameter.
@@ -92,14 +92,14 @@ bool rgb_extract::verify(string const &file_name, string const &rgb_node_file_na
 // Debug code
 
 for (vector<rgb_node>::const_iterator it = source_file_rgb_nodes.begin();
-        it < source_file_rgb_nodes.end(); it++)
+        it != source_file_rgb_nodes.end(); it++)
 {
     cout << *it << endl;
 }
 cout<< endl;
 
 for (vector<rgb_node>::const_iterator it = config_file_rgb_nodes.begin();
-        it < config_file_rgb_nodes.end(); it++)
+        it != config_file_rgb_nodes.end(); it++)
 {
     cout << *it << endl;
 }
