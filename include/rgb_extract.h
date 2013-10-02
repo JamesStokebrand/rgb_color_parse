@@ -38,13 +38,13 @@ private:
     void STATE_verify_VRML_CHARSET(const string &aWord);
 
     // Seek the first DEF
-    void STATE_verify_seek_DEF(const string &aWord);
-    void STATE_verify_seek_Transform(const string &aWord);
+    void STATE_seek_DEF(const string &aWord);
+    void STATE_seek_Transform(const string &aWord);
 
     // Seeking the RGB node colors
-    void STATE_verify_get_RED(const string &aWord);
-    void STATE_verify_get_GREEN(const string &aWord);
-    void STATE_verify_get_BLUE(const string &aWord);
+    void STATE_get_RED(const string &aWord);
+    void STATE_get_GREEN(const string &aWord);
+    void STATE_get_BLUE(const string &aWord);
 
 
     string in_file_name;

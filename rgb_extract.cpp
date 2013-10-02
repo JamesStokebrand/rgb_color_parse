@@ -10,6 +10,10 @@
 #include "include/rgb_fileio.h"
 #endif
 
+#ifndef __rgb_configio_h__
+#include "include/rgb_configio.h"
+#endif
+
 void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_list_vector)
 {
     // This will throw an exception if it cannot open the source file.
@@ -44,7 +48,7 @@ void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_lis
         // No RGB nodes extracted ... this is an error.
         string anError("No rgb nodes were extracted from \"" + in_file
             + "\".  Please check your input file.");
-        throw_exception(anError);
+        throw_exception(anError, __PRETTY_FUNCTION__);
     }
 
     // Success.  Copy the vector list to the input parameter.
@@ -61,7 +65,7 @@ void rgb_extract::extract(string const &file_name, string const &rgb_node_file_n
     extract_nodes(file_name, aVector);
 
     // aVector should have some nodes.  Format and write them to an output node file.
-    rgb_fileio fileIO;
+    rgb_configio configIO;
     string temp_node_file_name;
     if (rgb_node_file_name == "")
     {
@@ -71,7 +75,7 @@ void rgb_extract::extract(string const &file_name, string const &rgb_node_file_n
         temp_node_file_name = rgb_node_file_name;
     }
 
-    fileIO.write_node_config_file(aVector, file_name, temp_node_file_name);
+    configIO.write_node_config_file(aVector, file_name, temp_node_file_name);
 }
 
 bool rgb_extract::verify(string const &file_name, string const &rgb_node_file_name)
@@ -80,8 +84,8 @@ bool rgb_extract::verify(string const &file_name, string const &rgb_node_file_na
     vector<rgb_node> config_file_rgb_nodes;
     extract_nodes(file_name, source_file_rgb_nodes);
 
-    rgb_fileio fileIO;
-    fileIO.parse_node_config(rgb_node_file_name, config_file_rgb_nodes);
+    rgb_configio configIO;
+    configIO.parse_node_config(rgb_node_file_name, config_file_rgb_nodes);
 
 
 #if 0
@@ -140,20 +144,20 @@ void rgb_extract::STATE_verify_VRML_CHARSET(const string &aWord)
         STRING_error_layer,
         aWord, 
         CONST_STRING_VRML_CHARSET_KEYWORD, 
-        (STATE)&rgb_extract::STATE_verify_seek_DEF);
+        (STATE)&rgb_extract::STATE_seek_DEF);
 }
 
-void rgb_extract::STATE_verify_seek_DEF(const string &aWord)
+void rgb_extract::STATE_seek_DEF(const string &aWord)
 {
     if (aWord == CONST_STRING_DEF_KEYWORD)
     {
         temp_node.clear();
         last_word.clear();
-        TRAN((STATE)&rgb_extract::STATE_verify_seek_Transform);
+        TRAN((STATE)&rgb_extract::STATE_seek_Transform);
     }
 }
 
-void rgb_extract::STATE_verify_seek_Transform(const string &aWord)
+void rgb_extract::STATE_seek_Transform(const string &aWord)
 {
     if (aWord == CONST_STRING_TRANSFORM_KEYWORD)
     {
@@ -165,32 +169,32 @@ void rgb_extract::STATE_verify_seek_Transform(const string &aWord)
         temp_node.set_name(last_word);
     } else if (aWord == CONST_STRING_DIFFUSECOLOR_KEYWORD) {
         // The next word is the RED RGB value.
-        TRAN((STATE)&rgb_extract::STATE_verify_get_RED);
+        TRAN((STATE)&rgb_extract::STATE_get_RED);
     } else {
         last_word = aWord;
     }
 }
 
-void rgb_extract::STATE_verify_get_RED(const string &aWord)
+void rgb_extract::STATE_get_RED(const string &aWord)
 {
     temp_node.set_red(atof(aWord.c_str()));
-    TRAN((STATE)&rgb_extract::STATE_verify_get_GREEN);
+    TRAN((STATE)&rgb_extract::STATE_get_GREEN);
 }
 
-void rgb_extract::STATE_verify_get_GREEN(const string &aWord)
+void rgb_extract::STATE_get_GREEN(const string &aWord)
 {
     temp_node.set_green(atof(aWord.c_str()));
-    TRAN((STATE)&rgb_extract::STATE_verify_get_BLUE);
+    TRAN((STATE)&rgb_extract::STATE_get_BLUE);
 }
 
-void rgb_extract::STATE_verify_get_BLUE(const string &aWord)
+void rgb_extract::STATE_get_BLUE(const string &aWord)
 {
     temp_node.set_blue(atof(aWord.c_str()));
     rgb_list.push_back(temp_node); // Store the extracted RGB node in the vector.
-    TRAN((STATE)&rgb_extract::STATE_verify_seek_Transform); // Go back to seeking the node name.
+    TRAN((STATE)&rgb_extract::STATE_seek_Transform); // Go back to seeking the node name.
 }
 
-
+#if 0
 int main(int argc, char *argv[])
 {
     rgb_extract RGB_extract;
@@ -217,4 +221,6 @@ int main(int argc, char *argv[])
 
     return 0; // success
 }
+#endif
+
 

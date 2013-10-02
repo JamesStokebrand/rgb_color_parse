@@ -41,7 +41,7 @@ void rgb_configio::parse_node_config(string const &aNodeConfig,
             // Unable to open the config file for reading....
             //  This is an error.
             string anError("Unable to open node config for reading.  Check the input config file.");
-            throw_exception(anError.c_str());
+            throw_exception(anError.c_str(), __PRETTY_FUNCTION__);
         }
 
         while ((node_config_file >> aWord) &&
