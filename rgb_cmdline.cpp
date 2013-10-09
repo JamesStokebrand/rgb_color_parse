@@ -508,9 +508,10 @@ void rgb_cmdline::print_usage()
 {
     cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " provides support for the following commands:" << endl << endl;
     cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_single_wrl_file> [optional_config_file]" << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_directory_containing_wrl_files> [optional_config_file]" << endl << endl;
+    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_directory_containing_wrl_files>" << endl << endl;
 
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_single_wrl_file> <required_config_file>" << endl << endl;
+    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_single_wrl_file> <required_config_file>" << endl;
+    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_directory_containing_wrl_files> <required_config_file>" << endl << endl;
 
     cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_single_wrl_file> <required_config_file>" << endl;
     cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_directory_containing_wrl_files> <required_config_file>" << endl << endl;
