@@ -47,8 +47,8 @@ void rgb_configio::parse_node_config(string const &aNodeConfig,
         {
             // Unable to open the config file for reading....
             //  This is an error.
-            string anError("Unable to open node config for reading.  Check the input config file.");
-            throw_exception(anError.c_str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            throw_exception("Unable to open node config for reading.  Check the input config file.",
+                        __PRETTY_FUNCTION__, __FILE__, __LINE__);
         }
 
         while ((node_config_file >> aWord) &&
@@ -120,12 +120,17 @@ void rgb_configio::write_node_config_file(vector<rgb_node> const &node_vector,
     create_node_config(node_vector, source_file, aConfig);
 
     // Write config file to the output_file
-    ofstream out_file(output_file.c_str());
+    ofstream out_file(output_file.c_str(), ios::out | ios::trunc);
 
-    out_file << aConfig;
-
-    out_file.close();
-    
+    if (out_file.is_open()) {
+        out_file << aConfig;
+        out_file.close();
+    }
+    else 
+    {
+        throw_exception("Unable to open node config file for writing.  Is the directory full?", 
+                        __PRETTY_FUNCTION__, __FILE__, __LINE__);
+    } 
 }
 
 void rgb_configio::STATE_seek_START(string const &aWord)

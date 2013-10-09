@@ -25,7 +25,7 @@ public:
         srcFileIO = NULL;
     }
 
-    virtual ~rgb_rollback(){
+    virtual ~rgb_rollback() {
         if (srcFileIO) delete srcFileIO;
     }
 
@@ -36,6 +36,7 @@ public:
         TRAN((STATE)&rgb_rollback::STATE_verify_VRML);
         aConfigListing.clear();
         config_listings.clear();
+        word_accumulate.clear();
     }
 
     void rollback(const string &source);

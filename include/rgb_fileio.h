@@ -25,6 +25,8 @@ public:
         open(source, temp_file_wanted);
     }
 
+    virtual ~rgb_fileio() {}
+
     void clear() {
         if (source_file_stream.is_open())
         {

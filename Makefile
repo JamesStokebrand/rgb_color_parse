@@ -14,17 +14,17 @@ CFLAGS = -Wall -Wextra -g3
 
 # define any directories containing header files other than /usr/include
 #
-INCLUDES =
+INCLUDES = 
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = 
+LFLAGS =
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS = 
+LIBS = -lboost_system -lboost_filesystem
 
 # define the C source files
 SRCS =  rgb_node.cpp \
@@ -32,7 +32,8 @@ SRCS =  rgb_node.cpp \
         rgb_fileio.cpp \
         rgb_configio.cpp \
         rgb_replace.cpp \
-        rgb_rollback.cpp 
+        rgb_rollback.cpp \
+        rgb_cmdline.cpp 
 
 # define the C object files 
 #
@@ -86,3 +87,6 @@ rgb_replace.o: include/rgb_configio.h include/rgb_extract.h
 rgb_rollback.o: include/rgb_rollback.h include/rgb_node.h
 rgb_rollback.o: include/rgb_fileio.h include/rgb_configio.h
 rgb_rollback.o: include/rgb_replace.h
+rgb_cmdline.o: include/rgb_cmdline.h include/rgb_node.h include/rgb_extract.h
+rgb_cmdline.o: include/rgb_replace.h include/rgb_fileio.h
+rgb_cmdline.o: include/rgb_configio.h include/rgb_rollback.h

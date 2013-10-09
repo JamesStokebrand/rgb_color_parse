@@ -19,6 +19,8 @@ public:
         clear();
     }; 
 
+    virtual ~rgb_extract() {}
+
     void clear() {
         in_file_name.clear();
         last_word.clear();

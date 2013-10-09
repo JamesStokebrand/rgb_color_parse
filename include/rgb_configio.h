@@ -19,6 +19,8 @@ public:
         clear();
     }
 
+    virtual ~rgb_configio() {}
+
     void clear() {
         parse_temp_node.clear();
         parse_config_vector.clear();

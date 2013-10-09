@@ -55,14 +55,13 @@ void rgb_rollback::rollback(const string &source)
 
     srcFileIO->open(source,true);
     source_file = source;
+
     char aChar;
     while (srcFileIO->read_char(aChar)) {
         process(aChar);
     }
-
     srcFileIO->close();
-
-    srcFileIO->overwrite(); // TODO do this as the final step.
+    srcFileIO->overwrite();
 }
 
 void rgb_rollback::STATE_verify_VRML(const char &aChar)
@@ -333,7 +332,7 @@ void rgb_rollback::Process_Config_Listings()
 }
 
 
-#if 1
+#if 0
 int main(int argc, char *argv[])
 {
     rgb_replace rgbReplace;

@@ -23,6 +23,7 @@ const float CONST_RGB_COLOR_VALUE_MAX = 1.0; // Maximum RGB color value
 // rgb_fileio defines
 const string CONST_STRING_DEFAULT_TEMP_FILE_EXTENTION = "_temp.txt"; // temp file string extention
 const string CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION = "_rgb_nodes.txt"; // standard RGB node file extention
+const string CONST_STRING_DEFAULT_ARGUMENT_ZERO = "./RGB_color_parse"; // standard RGB node file extention
 
 // VRML file defines
 const string CONST_STRING_VRML_KEYWORD = "#VRML";
@@ -61,7 +62,6 @@ stringstream anError;
 anError <<  STRING_error_layer <<  __PRETTY_FUNCTION__ << ":" << "BLAH";
 throw ErrException(anError.str());
 
-
 */
 class ErrException : public exception
 {
@@ -84,6 +84,8 @@ public:
     rgb_base(const string &current_object) {
         STRING_error_layer = current_object;
     };
+
+    virtual ~rgb_base() {}
 
     void throw_exception(string ss, 
             string debug_method_name,
@@ -110,7 +112,6 @@ public:
 class rgb_state_word 
 {
 public:
-
     typedef void (rgb_state_word::*STATE)(const string &aWord);
 
 
@@ -161,7 +162,7 @@ public:
     typedef void (rgb_state_char::*STATE)(const char &aChar);
 
     rgb_state_char(STATE init) : state(init) { word_accumulate.clear(); }
-    virtual ~rgb_state_char() {};
+    virtual ~rgb_state_char() {}
 
     void STATE_verify_required_word(string const &ErrorLayer,
             const char &aChar,
@@ -205,7 +206,7 @@ public:
 };
 
 
-
+// This is a template class for printing out vector tables
 template < class T >
 std::ostream& operator << (std::ostream& os, const std::vector<T>& v) 
 {
@@ -224,6 +225,8 @@ public:
     rgb_node() : rgb_base("RGB_NODE") {
         clear(); 
     }
+
+    virtual ~rgb_node() {}
 
     void clear() { 
         // Inits everything to zero and clears the node name
