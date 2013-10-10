@@ -1,21 +1,6 @@
 /* 
     This class will provide the command line front end to the 
     RGB node parser.  
-
-
-    This object will support several commands:
-
-    -extract <a_single_wrl_file> [config_file]
-    -extract <a_directory_containing_wrl_files> [config_file]
-
-    -verify <a_single_wrl_file> <config_file>
-
-    -replace <a_single_wrl_file> <config_file>
-    -replace <a_directory_containing_wrl_files> <config_file>
-
-    -rollback <a_single_wrl_file> <config_file>
-    -rollback <a_directory_containing_wrl_fles> <config_file>
-
 */
 
 #ifndef __rgb_cmdline_h__
@@ -46,8 +31,7 @@ public:
     class rgb_command;
     class rgb_param_pair;
 
-    rgb_cmdline() : rgb_base("RGB_CMDLINE") {
-    }
+    rgb_cmdline() : rgb_base("RGB_CMDLINE") {}
 
     virtual ~rgb_cmdline() {}
 
@@ -127,6 +111,36 @@ public:
         }
 
         virtual void process();
+    };
+
+    class rgb_command_verbose : public rgb_command
+    {
+    public:
+        rgb_command_verbose()
+        : rgb_command("-verbose", "RGB_CMD_VERBOSE") {}
+
+        virtual ~rgb_command_verbose() {}
+
+        static bool match(string aParam)
+        {
+            if (aParam == "-verbose") {
+                return true;
+            }
+            return false;
+        }
+
+        enum EXECTION_STRING_ARRAY_LEVEL get_level() {
+            return level;
+        }
+
+        virtual void init(vector<string> &aCmdParam) {
+             rgb_command::nothing_required(aCmdParam);
+             level = ENUM_VERBOSE;
+        }
+
+        virtual void process() {} // nothing to process
+
+        enum EXECTION_STRING_ARRAY_LEVEL level;
     };
 
     class rgb_command_extract : public rgb_command

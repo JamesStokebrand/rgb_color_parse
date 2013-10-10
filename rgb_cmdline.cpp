@@ -21,7 +21,8 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
         print_usage();
 
         // No command line arguments found.  This is an error.
-        throw_exception("No command line arguments found.  Nothing to do.",
+        throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND,
+                "No command line arguments found.  Nothing to do.",
                 __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
@@ -61,7 +62,7 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
         cleanup(aListOfCmdObjects);
 
         // Throw it again ...
-        throw_exception(caught.what(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(caught.what());
     }
 
     // Free allocated commands
@@ -122,7 +123,7 @@ cout << "Found a -rollback command" << endl;
     }
     catch (ErrException& caught) {
         cleanup(aListOfCmds);
-        throw_exception(caught.what(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(caught.what());
     }
 
     // Were all the parameters consumed?
@@ -134,8 +135,9 @@ cout << "Found a -rollback command" << endl;
         cleanup(aListOfCmds);
 
         // Unknown parameter found ... this is an error.
-        throw_exception("Found unknown command parameter \"" + aCmdParams[0] + "\"",
-                        __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND
+            ,"Found unknown command parameter \"" + aCmdParams[0] + "\"",
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 }
 
@@ -155,7 +157,9 @@ void rgb_cmdline::rgb_command::nothing_required(vector<string> &aCmdParam)
     else
     {
         // Else its not the command switch we wanted ... this is an error.
-        throw_exception("Unexpected command switch \"" + aCmdParam[0] + "\"",__PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH,
+            "Unexpected command switch \"" + aCmdParam[0] + "\"",
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 }
 
@@ -191,7 +195,8 @@ DEBUG_METHOD_COUT
             // Else its a command switch ... 
             anError += " found but unexpected command switch \"" + aCmdParam[0] + "\" in place of first parameter.";
         }
-        throw_exception(anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_MISSING_FIRST_PARAMETER, 
+            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 }
 
@@ -246,7 +251,8 @@ void rgb_cmdline::rgb_command::two_required(vector<string> &aCmdParam, string &p
             // Else its a command switch...
             anError += " found but unexpected command switch \"" + aCmdParam[0] + "\" in place of second parameter.";
         }
-        throw_exception(anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_MISSING_SECOND_PARAMETER,
+            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 }
 
@@ -261,7 +267,8 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
     {
         // Input file does not exist.  This is an error.
         // File or path does not exist ... this is an error.
-        throw_exception(p1 + " does not exist.  Check the path or filename.",
+        throw_exception(ENUM_FILE_OR_DIRECTORY_NOT_FOUND,
+            "Parameter one: \"" + p1 + "\" does not exist.  Check the path or filename.",
             __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
@@ -290,7 +297,9 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
     } else {
         // Don't know what this element is ... its not a file or a directory.
         // This is an error.
-        throw_exception("Parameter one: \"" + p1 + "\" is an unknown file type.  Check the path or filename.",
+        throw_exception(ENUM_UNKNOWN_FILE_TYPE 
+            ,"Parameter one: \"" + p1 + 
+            "\" is an unknown file type.  Check the path or filename.",
             __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
@@ -298,7 +307,8 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
     if (path_listing.empty())
     {
         // No regular files found... nothing to do.
-        throw_exception("No files found in \"" + p1 + "\".  Nothing to do.", 
+        throw_exception(ENUM_NO_FILES_FOUND_IN_DIRECTORY,
+            "No files found in \"" + p1 + "\".  Nothing to do.", 
             __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
@@ -319,8 +329,10 @@ void rgb_cmdline::rgb_command::first_path_must_exist_second_may_not_exist(
     if (exists(path2) && is_directory(path2))
     {
         // P2 can't be a directory...  this is an error.
-        throw_exception("Parameter two: \"" + p2 + "\" cannot be a directory.  Check the path or filename.",
-         __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
+            "Parameter two: \"" + p2 + 
+            "\" cannot be a directory.  Check the path or filename.",
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     if (file_paths.size() == 1)
@@ -355,10 +367,14 @@ void rgb_cmdline::rgb_command::both_paths_must_exist(string const &p1, string co
     path path2(p2);
     if (!exists(path2)) {
         // P2 doesn't exist!  This is an error.
-        throw_exception("Parameter two: \"" + p2 + "\" does not exist.  Check the path or filename.",
-         __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_PARAM_TWO_NOT_FOUND,
+            "Parameter two: \"" + p2 + 
+            "\" does not exist.  Check the path or filename.",
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     } else if (!is_regular_file(path2)) {
-        throw_exception("Parameter two: \"" + p2 + "\" is a directory.  This is not a valid second parameter.  Check the path or filename.",
+        throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
+            "Parameter two: \"" + p2 + 
+            "\" is a directory.  This is not a valid second parameter.  Check the path or filename.",
             __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
@@ -401,13 +417,11 @@ cout << "P2 : " << ii->string1 << endl;
         }
         catch (ErrException& e)
         {
-//cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
         catch(const filesystem_error& e)
         {
-//cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
     }
 }
@@ -434,13 +448,11 @@ cout << "P2 : " << ii->string1 << endl;
         }
         catch (ErrException& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - error" << endl;
+            cout << " - " << e.what() << endl;
         }
         catch(const filesystem_error& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - error" << endl;
+            cout << " - " << e.what() << endl;
         }
     }
 }
@@ -464,13 +476,11 @@ cout << "P2 : " << ii->string1 << endl;
         }
         catch (ErrException& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
         catch(const filesystem_error& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
     }
 }
@@ -493,13 +503,11 @@ cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
         }
         catch (ErrException& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
         catch(const filesystem_error& e)
         {
-            //cerr << e.what() << endl;
-            cout << " - failure" << endl;
+            cout << " - " << e.what() << endl;
         }
     }
 }

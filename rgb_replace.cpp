@@ -46,8 +46,9 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception("Unable to allocate rgb_fileio object.", 
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
+            "Unable to allocate rgb_fileio object.", 
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     // Extract existing nodes from source file.
@@ -65,7 +66,8 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     {
         // Nothing to do.  Source RGB nodes match the ones in the config file.
         //  This is an error.
-        throw_exception("RGB nodes in \"" + rgb_file + "\" match the RGB nodes "
+        throw_exception(ENUM_RGB_NODES_MATCH, 
+            "RGB nodes in \"" + rgb_file + "\" match the RGB nodes "
             + "in \"" + rgb_config_file + "\".  Nothing to do.", 
             __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
@@ -89,8 +91,9 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception("Unable to allocate rgb_fileio object.", 
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
+            "Unable to allocate rgb_fileio object.", 
+            __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
 
     srcFileIO->clear();
@@ -119,7 +122,6 @@ void rgb_replace::STATE_verify_VRML(const char &aChar)
             aChar,
             CONST_STRING_VRML_KEYWORD,
             (STATE)&rgb_replace::STATE_verify_VRML_VER);
-DEBUG_STATE
 }
 
 void rgb_replace::STATE_verify_VRML_VER(const char &aChar)
@@ -128,7 +130,6 @@ void rgb_replace::STATE_verify_VRML_VER(const char &aChar)
         aChar,
         CONST_STRING_VRML_VER_KEYWORD,
         (STATE)&rgb_replace::STATE_verify_VRML_CHARSET);
-DEBUG_STATE
 }
 
 void rgb_replace::STATE_verify_VRML_CHARSET(const char &aChar)
@@ -137,14 +138,12 @@ void rgb_replace::STATE_verify_VRML_CHARSET(const char &aChar)
         aChar,
         CONST_STRING_VRML_CHARSET_KEYWORD,
         (STATE)&rgb_replace::STATE_seek_DEF);
-DEBUG_STATE
 }
 
 void rgb_replace::STATE_seek_DEF(const char &aChar)
 {
     if (isspace(aChar))
     {
-DEBUG_STATE
 
         if (word_accumulate == CONST_STRING_DEF_KEYWORD)
         {
@@ -173,7 +172,6 @@ void rgb_replace::STATE_seek_DIFFUSECOLOR(const char &aChar)
 {
     if (isspace(aChar))
     {
-DEBUG_STATE
         if (word_accumulate == CONST_STRING_DIFFUSECOLOR_KEYWORD)
         {
             // Transition to replace the RED RGB value
