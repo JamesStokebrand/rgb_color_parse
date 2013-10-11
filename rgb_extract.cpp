@@ -1,7 +1,52 @@
 /*
-    This node defines the parsing and extraction if rgb color nodes from a WRL VRML file.  
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: rgb_extract.cpp
+##  This file defines the methods used to extract RGB config nodes from VRML V2.0 
+##   files.
+##
 */
-
 #ifndef __rgb_extract_h__
 #include "include/rgb_extract.h"
 #endif
@@ -88,30 +133,8 @@ bool rgb_extract::verify(string const &file_name, string const &rgb_node_file_na
     rgb_configio configIO;
     configIO.parse_node_config(rgb_node_file_name, config_file_rgb_nodes);
 
-
-#if 0
-// Debug code
-
-for (vector<rgb_node>::const_iterator it = source_file_rgb_nodes.begin();
-        it != source_file_rgb_nodes.end(); it++)
-{
-    cout << *it << endl;
-}
-cout<< endl;
-
-for (vector<rgb_node>::const_iterator it = config_file_rgb_nodes.begin();
-        it != config_file_rgb_nodes.end(); it++)
-{
-    cout << *it << endl;
-}
-cout << endl;
-
-cout << "Source file size: " << source_file_rgb_nodes.size() << endl;
-cout << "Config file size: " << config_file_rgb_nodes.size() << endl;
-#endif
-
     // Extracted RGB nodes from both the source file and the 
-    // config file. 
+    //  config file. 
 
     // Determine if they are equal
     if (source_file_rgb_nodes == config_file_rgb_nodes)
@@ -194,34 +217,5 @@ void rgb_extract::STATE_get_BLUE(const string &aWord)
     rgb_list.push_back(temp_node); // Store the extracted RGB node in the vector.
     TRAN((STATE)&rgb_extract::STATE_seek_Transform); // Go back to seeking the node name.
 }
-
-#if 0
-int main(int argc, char *argv[])
-{
-    rgb_extract RGB_extract;
-    vector<rgb_node> rgb_listing;
-
-    try {
-        //RGB_extract.extract_nodes("test_file.txt", rgb_listing); // Should give an error.
-        //RGB_extract.extract_nodes("ReadMore_11.5.wrl", rgb_listing); // Should work...
-        RGB_extract.extract("ReadMore_11.5.wrl"); // Should work...
-        if (RGB_extract.verify("ReadMore_11.5.wrl", 
-            "ReadMore_11.5.wrl_rgb_nodes.txt"))
-        {
-            cout << "Config file ReadMore_11.5.wrl_rgb_nodes.txt matches the nodes in ReadMore_11.5.wrl" << endl;
-        } else {
-        
-            cout << "Config file ReadMore_11.5.wrl_rgb_nodes.txt DOES NOT MATCH the nodes in ReadMore_11.5.wrl" << endl;
-        }
-
-    }
-    catch (ErrException& caught)
-    {
-        cerr << "ERROR:" << caught.what() << endl;
-    }
-
-    return 0; // success
-}
-#endif
 
 

@@ -1,11 +1,54 @@
-/* 
-    This class will provide the command line front end to the 
-    RGB node parser.  
-*/
-
 #ifndef __rgb_cmdline_h__
 #define __rgb_cmdline_h__
-
+/*
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: rgb_cmdline.h
+##  This file defines the command line object that allows this program
+##   to parse and execute commands from the command line.
+##
+*/
 #ifndef __rgb_node_h__
 #include "rgb_node.h"
 #endif
@@ -42,7 +85,8 @@ public:
 
     void cleanup(vector<rgb_command *> &aListOfCmds)
     {
-        for (vector<rgb_command *>::iterator it = aListOfCmds.begin(); it != aListOfCmds.end(); it++)
+        for (vector<rgb_command *>::iterator it = aListOfCmds.begin();
+                it != aListOfCmds.end(); it++)
         {
             // Delete the list of commands.
             delete *it;
@@ -111,36 +155,6 @@ public:
         }
 
         virtual void process();
-    };
-
-    class rgb_command_verbose : public rgb_command
-    {
-    public:
-        rgb_command_verbose()
-        : rgb_command("-verbose", "RGB_CMD_VERBOSE") {}
-
-        virtual ~rgb_command_verbose() {}
-
-        static bool match(string aParam)
-        {
-            if (aParam == "-verbose") {
-                return true;
-            }
-            return false;
-        }
-
-        enum EXECTION_STRING_ARRAY_LEVEL get_level() {
-            return level;
-        }
-
-        virtual void init(vector<string> &aCmdParam) {
-             rgb_command::nothing_required(aCmdParam);
-             level = ENUM_VERBOSE;
-        }
-
-        virtual void process() {} // nothing to process
-
-        enum EXECTION_STRING_ARRAY_LEVEL level;
     };
 
     class rgb_command_extract : public rgb_command
@@ -251,7 +265,7 @@ public:
         virtual void process();
     };
 
-    // This class holds the path object and an optional config file name
+    // This class holds the path object and a file name
     class rgb_param_pair
     {
     public:

@@ -1,8 +1,53 @@
 /*
-
-    This file defines the methods for the RGB command line tool
-    
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: rgb_cmdline.cpp
+##  This file contains main() and the command line methods that allow it
+##   to recognize command switches and arguments.  
+##
 */
+
 #ifndef __rgb_cmdline_h__
 #include "include/rgb_cmdline.h"
 #endif
@@ -33,10 +78,9 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
         //temp = argv[i];
         list_of_commands.push_back(argv[i]);
     }
-//cout << "Cmds: " << list_of_commands << endl;
 
-    vector<rgb_command *> aListOfCmdObjects;
     // Setup a list of commands
+    vector<rgb_command *> aListOfCmdObjects;
     setup(list_of_commands, aListOfCmdObjects);
 
     try
@@ -85,27 +129,27 @@ DEBUG_METHOD_COUT
 //cout << "aListOfCmds vector: " << aListOfCmds << endl;
             
             if (rgb_command_help::match(aCmdParams[0])) {
-cout << "Found a -help command" << endl;
+//cout << "Found a -help command" << endl;
                 rgb_command_help *aCmd = new rgb_command_help;
                 aListOfCmds.push_back(aCmd);
                 aCmd->init(aCmdParams);
             } else if (rgb_command_extract::match(aCmdParams[0])) {
-cout << "Found an -extract command" << endl;
+//cout << "Found an -extract command" << endl;
                 rgb_command_extract *aCmd = new rgb_command_extract;
                 aListOfCmds.push_back(aCmd);
                 aCmd->init(aCmdParams);
             } else if (rgb_command_verify::match(aCmdParams[0])) {
-cout << "Found a -verify command" << endl;
+//cout << "Found a -verify command" << endl;
                 rgb_command_verify *aCmd = new rgb_command_verify;
                 aListOfCmds.push_back(aCmd);
                 aCmd->init(aCmdParams);
             } else if (rgb_command_replace::match(aCmdParams[0])) {
-cout << "Found a -replace command" << endl;
+//cout << "Found a -replace command" << endl;
                 rgb_command_replace *aCmd = new rgb_command_replace;
                 aListOfCmds.push_back(aCmd);
                 aCmd->init(aCmdParams);
             } else if (rgb_command_rollback::match(aCmdParams[0])) {
-cout << "Found a -rollback command" << endl;
+//cout << "Found a -rollback command" << endl;
                 rgb_command_rollback *aCmd = new rgb_command_rollback;
                 aListOfCmds.push_back(aCmd);
                 aCmd->init(aCmdParams);
@@ -469,7 +513,7 @@ void rgb_cmdline::rgb_command_replace::process()
         {
 #if 0
 cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
-cout << "P2 : " << ii->string1 << endl;
+cout << "P2 : " << ii->path2 << endl;
 #endif
             aReplaceObj.replace(canonical(ii->path1).string(), ii->path2);
             cout << " - SUCCESS" << endl;
@@ -514,27 +558,35 @@ cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
 
 void rgb_cmdline::print_usage()
 {
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " provides support for the following commands:" << endl << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_single_wrl_file> [optional_config_file]" << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_directory_containing_wrl_files>" << endl << endl;
-
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_single_wrl_file> <required_config_file>" << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_directory_containing_wrl_files> <required_config_file>" << endl << endl;
-
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_single_wrl_file> <required_config_file>" << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_directory_containing_wrl_files> <required_config_file>" << endl << endl;
-
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_single_wrl_file>" << endl;
-    cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_directory_containing_wrl_fles>" << endl << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -help" << endl;
+cout << "  - Displays this usage information" << endl;
+cout << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_single_wrl_file> [optional_config_file]" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_directory_containing_wrl_files>" << endl;
+cout << "  - Extracts RGB node information from a single VRML file or all the" << endl;
+cout << "     VRML files in a directory." << endl;
+cout << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_single_wrl_file> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_directory_containing_wrl_files> <required_config_file>" << endl;
+cout << "  - Verifies that the RGB nodes in a single VRML or all the files in a directory" << endl;
+cout << "     match the ones found in a required RGB config file." << endl;
+cout << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_single_wrl_file> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_directory_containing_wrl_files> <required_config_file>" << endl;
+cout << "  - Replaces the RGB nodes in a single VRML file or all the VRML files found in " << endl;
+cout << "     a directory.  Requires a RGB config file." << endl;
+cout << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_single_wrl_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_directory_containing_wrl_fles>" << endl;
+cout << "  - Rollsback the RGB nodes previously changed from the \"-replace\" command." << endl;
+cout << "     Requires a single VRML file or all the VMRL files found in a directory." << endl; 
+cout << endl;
 }
 
 int main(int argc, char* argv[])
 {
-#if 1
     rgb_cmdline aCmdLine;
-
     try{
-        //aCmdLine.print_usage(argv[0]);
         aCmdLine.parse_execute(argc, argv);
     }
     catch (ErrException& caught) {
@@ -545,35 +597,7 @@ int main(int argc, char* argv[])
        // Just spew the message ... 
        cerr << e.code().message() << endl;
     }
-#endif
-#if 0
-    //current working directory
-    path full_path(argv[0]);
-
-//    cout << full_path << endl;
-//    cout << full_path.c_str() << endl;
-//    cout << full_path.root_directory() << endl;
-
-cout << "root_name(): " << full_path.root_name() << endl;
-cout << "root_directory(): " << full_path.root_directory() << endl;
-cout << "root_path(): " << full_path.root_path() << endl;
-cout << "relative_path(): " << full_path.relative_path() << endl;
-cout << "parent_path(): " << full_path.parent_path() << endl;
-cout << "filename(): " << full_path.filename() << endl;
-cout << "filename().string(): " << full_path.filename().string() << endl;
-cout << "stem(): " << full_path.stem() << endl;
-cout << "extention(): " << full_path.extension() << endl;
-
-cout << "absolute(path): " << absolute(full_path).c_str() << endl;
-cout << "absolute(path).string(): " << absolute(full_path).string() << endl;
-cout << "canonical(path): " << canonical(full_path).c_str() << endl;
-cout << "current_path(): " << current_path() << endl;
-//        path& make_absolute(const path& base);
-//        path& make_preferred();  // ISO/IEC 9945: no effect. Windows: convert slashes to backslashes
-//        path& remove_filename();
-//        path& replace_extension(const path& new_extension = path());
-//        void  swap(path& rhs);
-#endif
-
     return 0;
 }
+
+

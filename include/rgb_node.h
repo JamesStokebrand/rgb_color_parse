@@ -1,11 +1,54 @@
 #ifndef __rgb_node_h__
 #define __rgb_node_h__
-
-/* rgb node is the base unit.  It holds the RGB and name information of 
-    the color node for maipulation by the other modules. 
+/*
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: rgb_node.h
+##  This file defines the base rgb_node and several helper objects that are used
+##   to extract, replace and rollback RGB nodes in VRML V2.0 files.
+##
 */
-
-
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -49,6 +92,9 @@ enum EXECTION_STRING_ARRAY_LEVEL {
     ,ENUM_NORMAL=1
     ,ENUM_VERBOSE=2
 };
+
+// NOTE use this to change the amount of information provided for debugging
+const enum EXECTION_STRING_ARRAY_LEVEL CONST_ENUM_SOFTWARE_DEBUG_LEVEL = ENUM_BRIEF;
 
 enum EXCEPTION_STRING_ARRAY {
      ENUM_RGB_VALUE_BELOW_ZERO=0
@@ -141,21 +187,16 @@ private:
 
 /* RGB Base includes the following helper methods:
     - Aid in throwing exceptions.
-
 */
 class rgb_base 
 {
 public:
-    rgb_base(const string &current_object) {
+    rgb_base(const string &current_object)
+    : level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) {
         STRING_error_layer = current_object;
-        level = ENUM_BRIEF;
     };
 
     virtual ~rgb_base() {}
-
-    void set_level(enum EXECTION_STRING_ARRAY_LEVEL x) {
-        level = x;
-    }
 
     void throw_exception(
             enum EXCEPTION_STRING_ARRAY x,
@@ -194,14 +235,14 @@ public:
 
 /* 
     RGB State WORD 
-      This is a base class that helps creating state machines to 
-      perform word based text processing.
+      This is a base class that helps create state machines.  This
+      aids in perform word based text processing.
 */
 class rgb_state_word 
 {
 public:
+    //  STATE method pointer typedef
     typedef void (rgb_state_word::*STATE)(const string &aWord);
-
 
     void STATE_verify_required_word(string const &ErrorLayer,
             const string &aWord,
@@ -214,7 +255,6 @@ public:
         }
         else
         {
-
             // This is a required word!
             // If it is not found as the first word it is an error.
             stringstream anError;
@@ -231,12 +271,8 @@ public:
     }
 
     // State machine defines.
-    rgb_state_word(STATE init) : state(init), level(ENUM_BRIEF) {}
+    rgb_state_word(STATE init) : state(init), level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) {}
     virtual ~rgb_state_word() {};
-
-    void set_level(enum EXECTION_STRING_ARRAY_LEVEL x) {
-        level = x;
-    }
 
     void TRAN(STATE target) { state = static_cast<STATE>(target);}
     void process(const string &aWord) { (this->*state)(aWord); }
@@ -254,20 +290,20 @@ class rgb_state_char
 public:
     typedef void (rgb_state_char::*STATE)(const char &aChar);
 
-    rgb_state_char(STATE init) : state(init), level(ENUM_BRIEF) { 
+    rgb_state_char(STATE init)
+    : state(init)
+    , level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) { 
         word_accumulate.clear();
     }
     virtual ~rgb_state_char() {}
-
-    void set_level(enum EXECTION_STRING_ARRAY_LEVEL x) {
-        level = x;
-    }
 
     void STATE_verify_required_word(string const &ErrorLayer,
             const char &aChar,
             const string &ReqWord,
             STATE nextState)
     {
+        // Have we found a spacer char or is the accumulated word greater
+        //  than the required word?
         if (isspace(aChar))
         {
             if (word_accumulate == ReqWord)
@@ -340,6 +376,7 @@ public:
     }
 
     void set_name(string aName) {
+        // NOTE that the name is not used in text or state machine processing.
         name = aName;
     }
 

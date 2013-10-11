@@ -1,30 +1,68 @@
 /*
-    This file contains methods that will allow the user to 
-      go back to the previous RGB node settings by using the
-      last config listing found in the comments near the 
-      beginning of the file.
-
-      Something in the form of:
-
-            #VRML v2.0 utf8 
-
-            # Comment Section
-            # Comment Section
-
-            DEF blah blah 
-            defuseColor R G B
-            defuseColor R G B
-            defuseColor R G B
-            defuseColor R G B
-
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: rgb_rollback.cpp
+##  This file defines the methods needed to parse a VRML file and replace the existing
+##   RGB nodes with the previous versions if the have been placed in the file.
+##
 */
-
 #ifndef __rgb_rollback_h__
 #include "include/rgb_rollback.h"
 #endif
 
+#ifndef __rgb_extract_h__
+#include "include/rgb_extract.h"
+#endif
+
 #ifndef __rgb_replace_h__
 #include "include/rgb_replace.h"
+#endif
+
+#if 0
+#define STATE_MACHINE_DEBUG cerr << __PRETTY_FUNCTION__ << endl;
+#else
+#define STATE_MACHINE_DEBUG //
 #endif
 
 
@@ -44,6 +82,13 @@ void rgb_rollback::rollback(const string &source)
 
     clear();
 
+    // Verify the source file is a VRML file by extracting the 
+    //  existing RGB nodes.  This will throw an exception 
+    //  if the file is not a VRML file.
+    rgb_extract rgbExtract;
+    vector<rgb_node> source_node_vector;
+    rgbExtract.extract_nodes(source, source_node_vector);
+
     // Open file
     // State machine sequence:
     //  Verify the file is a VRML file.
@@ -52,7 +97,6 @@ void rgb_rollback::rollback(const string &source)
     //  Replace the RGB nodes with the last config listing
     // close open files
     // overwrite existing file with temp file
-
 
     srcFileIO->open(source,true);
     source_file = source;
@@ -67,6 +111,7 @@ void rgb_rollback::rollback(const string &source)
 
 void rgb_rollback::STATE_verify_VRML(const char &aChar)
 {
+STATE_MACHINE_DEBUG
     STATE_verify_required_word(STRING_error_layer,
             aChar,
             CONST_STRING_VRML_KEYWORD,
@@ -75,6 +120,7 @@ void rgb_rollback::STATE_verify_VRML(const char &aChar)
 
 void rgb_rollback::STATE_verify_VRML_VER(const char &aChar)
 {
+STATE_MACHINE_DEBUG
     STATE_verify_required_word(STRING_error_layer,
         aChar,
         CONST_STRING_VRML_VER_KEYWORD,
@@ -83,6 +129,7 @@ void rgb_rollback::STATE_verify_VRML_VER(const char &aChar)
 
 void rgb_rollback::STATE_verify_VRML_CHARSET(const char &aChar)
 {
+STATE_MACHINE_DEBUG
     STATE_verify_required_word(STRING_error_layer,
         aChar,
         CONST_STRING_VRML_CHARSET_KEYWORD,
@@ -91,6 +138,7 @@ void rgb_rollback::STATE_verify_VRML_CHARSET(const char &aChar)
 
 void rgb_rollback::STATE_seek_START(const char &aChar)
 {
+STATE_MACHINE_DEBUG
     // Useless whitespace? 
     if (isspace(aChar) && word_accumulate.empty() && !aConfigListing.empty())
     {
@@ -334,42 +382,3 @@ void rgb_rollback::Process_Config_Listings()
 }
 
 
-#if 0
-int main(int argc, char *argv[])
-{
-    rgb_replace rgbReplace;
-    rgb_rollback aRollback;
-    try {
-
-#if 1
-        // Replace multiple times ...
-        int ii = 0;
-        while(ii<=9)
-        {
-            cout << "Replace loop:" << ii++ << endl;
-            rgbReplace.replace("ReadMore_11.5.wrl_temp_blah.txt", "temp_config1.txt");
-            cout << "Replace loop:" << ii++ << endl;
-            rgbReplace.replace("ReadMore_11.5.wrl_temp_blah.txt", "temp_config2.txt");
-            cout << "Replace loop:" << ii++ << endl;
-            rgbReplace.replace("ReadMore_11.5.wrl_temp_blah.txt", "temp_config3.txt");
-        }
-
-#if 1
-        // Rollback until back to the original file.
-        int jj = 0;
-        while (1)
-        {
-            cout << "Rollback loop:" << jj++ << endl;
-            aRollback.rollback("ReadMore_11.5.wrl_temp_blah.txt");
-        }
-        cout << "Done!" << endl;
-#endif
-#endif
-    }
-    catch (ErrException& caught) {
-        cerr << caught.what() << endl;
-    }
-
-    return 0; // Success
-}
-#endif

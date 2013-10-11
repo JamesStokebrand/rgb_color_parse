@@ -1,3 +1,49 @@
+##
+## Copyright Oct 2013 James Stokebkrand
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+## http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## Purpose: 
+##  This is a command line tool to extract, replace and rollback RGB nodes 
+##   inside VRML V2.0 files.  (File extention WRL)
+##
+## Usage:
+## ./RGB_color_parse -help
+##   - Displays this usage information
+## 
+## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
+## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
+##   - Extracts RGB node information from a single VRML file or all the 
+##      VRML files in a directory.
+## 
+## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
+##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
+##      match the ones found in a required RGB config file.
+## 
+## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
+## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
+##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
+##      a directory.  Requires a RGB config file.
+## 
+## ./RGB_color_parse -rollback <a_single_wrl_file>
+## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
+##   - Rollsback the RGB nodes previously changed from the "-replace" command.
+##      Requires a single VRML file or all the VMRL files found in a directory.
+##
+## Filename: Makefile
+##   This is the makefile for the RGB node command line tool
+##
 #
 # 'make depend' uses makedepend to automatically generate dependencies 
 #               (dependencies are added to end of Makefile)
@@ -18,15 +64,15 @@ INCLUDES =
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
-#   their path using -Lpath, something like:
+#   their path using -Lpath
 LFLAGS =
 
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
-#   option, something like (this will link in libmylib.so and libm.so:
+#   option
 LIBS = -lboost_system -lboost_filesystem
 
-# define the C source files
+# define the CPP source files
 SRCS =  rgb_node.cpp \
         rgb_extract.cpp \
         rgb_fileio.cpp \
@@ -35,7 +81,7 @@ SRCS =  rgb_node.cpp \
         rgb_rollback.cpp \
         rgb_cmdline.cpp 
 
-# define the C object files 
+# define the CPP object files 
 #
 # This uses Suffix Replacement within a macro:
 #   $(name:string1=string2)
@@ -86,7 +132,7 @@ rgb_replace.o: include/rgb_replace.h include/rgb_node.h include/rgb_fileio.h
 rgb_replace.o: include/rgb_configio.h include/rgb_extract.h
 rgb_rollback.o: include/rgb_rollback.h include/rgb_node.h
 rgb_rollback.o: include/rgb_fileio.h include/rgb_configio.h
-rgb_rollback.o: include/rgb_replace.h
+rgb_rollback.o: include/rgb_extract.h include/rgb_replace.h
 rgb_cmdline.o: include/rgb_cmdline.h include/rgb_node.h include/rgb_extract.h
 rgb_cmdline.o: include/rgb_replace.h include/rgb_fileio.h
 rgb_cmdline.o: include/rgb_configio.h include/rgb_rollback.h
