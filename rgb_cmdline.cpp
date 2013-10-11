@@ -47,7 +47,6 @@
 ##   to recognize command switches and arguments.  
 ##
 */
-
 #ifndef __rgb_cmdline_h__
 #include "include/rgb_cmdline.h"
 #endif
