@@ -87,7 +87,7 @@ const string CONST_STRING_CONFIG_END_KEYWORD = "#END";
 //  The enum values must match the strings defined
 //  in the exception_string_response
 
-enum EXECTION_STRING_ARRAY_LEVEL {
+enum EXCEPTION_STRING_ARRAY_LEVEL {
      ENUM_BRIEF=0
     ,ENUM_NORMAL=1
     ,ENUM_VERBOSE=2
@@ -214,8 +214,8 @@ public:
         } 
     }
 
-    enum EXECTION_STRING_ARRAY_LEVEL getLevel() { return level; }
-    void setLevel(enum EXECTION_STRING_ARRAY_LEVEL new_level) {
+    enum EXCEPTION_STRING_ARRAY_LEVEL getLevel() { return level; }
+    void setLevel(enum EXCEPTION_STRING_ARRAY_LEVEL new_level) {
         level = new_level;
     }
 
@@ -269,7 +269,7 @@ private:
  
     static int _referenceCount; 
     static LoggerLevel* _instance;
-    enum EXECTION_STRING_ARRAY_LEVEL level;
+    enum EXCEPTION_STRING_ARRAY_LEVEL level;
 };
  
 
@@ -297,26 +297,32 @@ public:
         {
             // This is a required word!
             // If it is not found as the first word it is an error.
-
-            // Is this word printable?
-            bool breakout = false;
-            for (int ll=0; ll < aWord.size(); ll++)
-            {
-                if (!isprint(aWord[ll]))
+            string anError = "";
+            enum EXCEPTION_STRING_ARRAY x = ENUM_PARSE_ERROR;
+            if ((aLogger->getLevel() == ENUM_BRIEF) || 
+                (aLogger->getLevel() == ENUM_NORMAL))  {
+                anError = exception_response[x][aLogger->getLevel()];
+            } else {
+                // Is this word printable?
+                bool breakout = false;
+                for (int ll=0; ll < aWord.size(); ll++)
                 {
-                    aLogger->throw_exception(ENUM_PARSE_ERROR,
-                        "Binary data found but expected \""
-                        + ReqWord + "\".  Please verify the input file.",
-                        __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_WORD");
-                    breakout=true;
+                    if (!isprint(aWord[ll]))
+                    {
+                        anError = "Binary data found but expected \""
+                            + ReqWord + "\".  Please verify the input file.";
+                        breakout=true;
+                    }
+                    if (breakout) break;
                 }
-                if (breakout) break;
-            }
 
-            if (!breakout) {
-                aLogger->throw_exception(ENUM_PARSE_ERROR,
-                    "\"" + aWord + "\" found but expected \""
-                    + ReqWord + "\".  Please verify the input file.",
+                if (!breakout) {
+                    anError = "\"" + aWord + "\" found but expected \""
+                        + ReqWord + "\".  Please verify the input file.";
+                }
+
+                // Throw it
+                aLogger->throw_exception(x, anError,
                     __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_WORD");
             }
         }
@@ -375,33 +381,40 @@ public:
             {
                 // This is a required word to verify the source file
                 // is a VRML file.  NOT finding this word is an error.
+                string anError = "";
+                enum EXCEPTION_STRING_ARRAY x = ENUM_PARSE_ERROR;
+                if ((aLogger->getLevel() == ENUM_BRIEF) ||
+                    (aLogger->getLevel() == ENUM_NORMAL))  {
+                    anError = exception_response[ENUM_PARSE_ERROR][aLogger->getLevel()];
+                } else {
 
-                // Is this word printable?
-                bool breakout=false;
+                    // Is this word printable?
+                    bool breakout=false;
 
-cout << "word_accumulate.size() = " << word_accumulate.size() << endl;
-                for (int ll=0; ll < word_accumulate.size(); ll++)
-                {
-                    if (!isprint(word_accumulate[ll]))
+                    for (int ll=0; ll < word_accumulate.size(); ll++)
                     {
-                        word_accumulate = "BINARY";
-                        breakout = true;
-                        break;
+                        if (!isprint(word_accumulate[ll]))
+                        {
+                            word_accumulate = "BINARY";
+                            breakout = true;
+                            break;
+                        }
+                        if (breakout) break;
                     }
-                    if (breakout) break;
-                }
 
-                aLogger->throw_exception(ENUM_PARSE_ERROR, "\"" + word_accumulate + 
-                    "\" found but expected \"" + ReqWord + 
-                    "\".  Please verify the input file.",
-                    __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_CHAR");
+                        anError = "\"" + word_accumulate + "\" found but expected \"" + 
+                            ReqWord + "\".  Please verify the input file.";
+                    }
+
+                    aLogger->throw_exception(x, anError, 
+                        __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_CHAR");
+                }
+            }
+            else
+            {
+                word_accumulate += aChar;
             }
         }
-        else
-        {
-            word_accumulate += aChar;
-        }
-    }
 
     // State machine defines.
     void TRAN(STATE target) { state = static_cast<STATE>(target);}
