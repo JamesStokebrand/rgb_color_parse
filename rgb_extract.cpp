@@ -91,10 +91,10 @@ void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_lis
     if (rgb_list.size() == 0) 
     {
         // No RGB nodes extracted ... this is an error.
-        throw_exception(ENUM_NO_RGB_VALUES_FOUND, 
+        aLogger->throw_exception(ENUM_NO_RGB_VALUES_FOUND, 
             "No rgb nodes were extracted from \"" + in_file
             + "\".  Please check your input file.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // Success.  Copy the vector list to the input parameter.

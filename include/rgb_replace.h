@@ -62,18 +62,19 @@
 
 
 class rgb_replace 
-: public rgb_base
-, public rgb_state_char
+: public rgb_state_char
 {
 public:
     rgb_replace() 
-    : rgb_base("RGB_REPLACE")
+    : STRING_error_layer("RGB_REPLACE")
     , rgb_state_char((STATE)&rgb_replace::STATE_verify_VRML) {
+        aLogger = LoggerLevel::getInstance();
         srcFileIO = NULL;
     }
 
     virtual ~rgb_replace() { 
         if (srcFileIO) delete srcFileIO;
+        aLogger->releaseInstance();
     }
 
     void clear()
@@ -109,6 +110,9 @@ private:
     rgb_fileio *srcFileIO;
     string existing_node_config;
     vector<rgb_node> config_node_vector;
+
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 #endif

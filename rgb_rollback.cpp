@@ -74,9 +74,9 @@ void rgb_rollback::rollback(const string &source)
         if (!srcFileIO)
         {
             // Unable to alocate RGB fileIO object
-            throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
+            aLogger->throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
                 "Unable to allocate rgb_fileio.", 
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
         }
     }
 
@@ -354,9 +354,10 @@ void rgb_rollback::Process_Config_Listings()
         // Clean up the temp file before throwing
         //  the exception
         srcFileIO->erase();
-        throw_exception(ENUM_NOTHING_TO_ROLLBACK,
+        aLogger->throw_exception(ENUM_NOTHING_TO_ROLLBACK,
                 "No previous config listings found in \"" + source_file + 
-                "\".  Nothing to do.", __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                "\".  Nothing to do.", __PRETTY_FUNCTION__, __FILE__, __LINE__,
+                STRING_error_layer);
     }
 
     // If there is more than one config in the vector

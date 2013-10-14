@@ -52,17 +52,20 @@
 #include "rgb_node.h"
 #endif
 
-class rgb_extract : public rgb_base, public rgb_state_word
+class rgb_extract : public rgb_state_word
 {
 public:
     rgb_extract() 
-    : rgb_base("RGB_PARSE")
+    : STRING_error_layer("RGB_PARSE")
     , rgb_state_word((STATE)&rgb_extract::STATE_verify_VRML)
     {
+        aLogger = LoggerLevel::getInstance();
         clear();
     }; 
 
-    virtual ~rgb_extract() {}
+    virtual ~rgb_extract() {
+        aLogger->releaseInstance();
+    }
 
     void clear() {
         in_file_name.clear();
@@ -96,6 +99,8 @@ private:
     string last_word;
     vector<rgb_node> rgb_list;
     rgb_node temp_node;
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 
 };
 

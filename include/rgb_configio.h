@@ -53,17 +53,20 @@
 #include "rgb_node.h"
 #endif
 
-class rgb_configio : public rgb_base , public rgb_state_word
+class rgb_configio : public rgb_state_word
 {
 public:
     rgb_configio()
-    : rgb_base("RGB_CONFIGIO")
+    : STRING_error_layer("RGB_CONFIGIO")
     , rgb_state_word((STATE)&rgb_configio::STATE_seek_START)
     {
+        aLogger = LoggerLevel::getInstance();
         clear();
     }
 
-    virtual ~rgb_configio() {}
+    virtual ~rgb_configio() {
+        aLogger->releaseInstance();
+    }
 
     void clear() {
         parse_temp_node.clear();
@@ -102,6 +105,9 @@ private:
     rgb_node parse_temp_node;
     vector<rgb_node> parse_config_vector;
     unsigned int parse_config_number_of_nodes;
+
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 #endif

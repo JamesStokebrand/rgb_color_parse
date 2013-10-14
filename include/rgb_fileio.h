@@ -52,23 +52,27 @@
 #include "rgb_node.h"
 #endif
 
-class rgb_fileio : public rgb_base
+class rgb_fileio
 {
 public:
     rgb_fileio() 
-    : rgb_base("RGB_FILEIO")
+    : STRING_error_layer("RGB_FILEIO")
     {
+        aLogger = LoggerLevel::getInstance();
         clear();
     }
 
     rgb_fileio(string const& source, bool temp_file_wanted = false)
-    : rgb_base("RGB_FILEIO")
+    : STRING_error_layer("RGB_FILEIO")
     {
+        aLogger = LoggerLevel::getInstance();
         clear();
         open(source, temp_file_wanted);
     }
 
-    virtual ~rgb_fileio() {}
+    virtual ~rgb_fileio() {
+        aLogger->releaseInstance();
+    }
 
     void clear() {
         if (source_file_stream.is_open())
@@ -103,6 +107,9 @@ private:
     ofstream temp_file_stream;
 
     bool temp_file_opened;
+
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 

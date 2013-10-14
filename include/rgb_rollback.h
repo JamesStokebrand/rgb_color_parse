@@ -62,19 +62,20 @@
 #endif
 
 class rgb_rollback
-: rgb_base
-, rgb_state_char
+: rgb_state_char
 {
 public:
     rgb_rollback()
-        : rgb_base("RGB_ROLLBACK") 
+        : STRING_error_layer("RGB_ROLLBACK") 
         , rgb_state_char((STATE)&rgb_rollback::STATE_verify_VRML)
     {
+        aLogger = LoggerLevel::getInstance();
         srcFileIO = NULL;
     }
 
     virtual ~rgb_rollback() {
         if (srcFileIO) delete srcFileIO;
+        aLogger->releaseInstance();
     }
 
     void clear()
@@ -117,6 +118,9 @@ private:
 
     string aConfigListing;
     vector<string> config_listings;
+
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 #endif

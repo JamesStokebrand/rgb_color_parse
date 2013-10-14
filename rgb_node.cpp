@@ -57,4 +57,9 @@ ostream& operator<<(ostream &out, const rgb_node &A)
     return out;
 }
 
+// Init the singleton
+int LoggerLevel::_referenceCount = 0;  
+LoggerLevel* LoggerLevel::_instance = NULL;
+
+
 

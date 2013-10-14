@@ -89,9 +89,9 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
+        aLogger->throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
             "Unable to allocate rgb_fileio object.", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // Extract existing nodes from source file.
@@ -109,10 +109,10 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     {
         // Nothing to do.  Source RGB nodes match the ones in the config file.
         //  This is an error.
-        throw_exception(ENUM_RGB_NODES_MATCH, 
+        aLogger->throw_exception(ENUM_RGB_NODES_MATCH, 
             "RGB nodes in \"" + rgb_file + "\" match the RGB nodes "
             + "in \"" + rgb_config_file + "\".  Nothing to do.", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // Ok, so the RGB nodes are different .. then replace them.
@@ -130,9 +130,9 @@ void rgb_replace::replace(string const &rgb_file, string const &rgb_config_file)
     if (!srcFileIO)
     {
         // Unable to allocate the rgb_fileio object.  This is an error.
-        throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
+        aLogger->throw_exception(ENUM_UNABLE_TO_ALLOCATE_FILEIO,
             "Unable to allocate rgb_fileio object.", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     srcFileIO->clear();

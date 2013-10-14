@@ -91,9 +91,9 @@ void rgb_configio::parse_node_config(string const &aNodeConfig,
         {
             // Unable to open the config file for reading....
             //  This is an error.
-            throw_exception(ENUM_UNABLE_TO_READ_CONFIG,
+            aLogger->throw_exception(ENUM_UNABLE_TO_READ_CONFIG,
                 "Unable to open node config for reading.  Check the input config file.",
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
         }
 
         while ((node_config_file >> aWord) &&
@@ -171,9 +171,9 @@ void rgb_configio::write_node_config_file(vector<rgb_node> const &node_vector,
     }
     else 
     {
-        throw_exception(ENUM_UNABLE_TO_WRITE_CONFIG,
+        aLogger->throw_exception(ENUM_UNABLE_TO_WRITE_CONFIG,
             "Unable to open node config file for writing.  Is the directory full?", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     } 
 }
 

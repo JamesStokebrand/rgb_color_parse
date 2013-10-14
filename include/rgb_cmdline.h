@@ -68,15 +68,19 @@
 #include <boost/filesystem.hpp>
 using namespace boost::filesystem;
 
-class rgb_cmdline : public rgb_base
+class rgb_cmdline
 {
 public:
     class rgb_command;
     class rgb_param_pair;
 
-    rgb_cmdline() : rgb_base("RGB_CMDLINE") {}
+    rgb_cmdline() : STRING_error_layer("RGB_CMDLINE") {
+        aLogger = LoggerLevel::getInstance();
+    }
 
-    virtual ~rgb_cmdline() {}
+    virtual ~rgb_cmdline() {
+        aLogger->releaseInstance();
+    }
 
     void static print_usage();
 
@@ -97,17 +101,20 @@ public:
     // This is the generic command class
     //   This provides the needed infrastructure for each
     //   command to work.
-    class rgb_command : public rgb_base
+    class rgb_command
     {
     public:
         rgb_command(string const &aCmd,
                 string const &rgb_base_name="RGB_COMMAND")
-        : rgb_base(rgb_base_name)
+        : STRING_error_layer(rgb_base_name)
         , STRING_command_text(aCmd) { 
+            aLogger = LoggerLevel::getInstance();
             input_file_pairs.clear();
         }
 
-        virtual ~rgb_command() {}
+        virtual ~rgb_command() {
+            aLogger->releaseInstance();
+        }
 
         static bool match(string aParam)
         {
@@ -132,6 +139,9 @@ public:
 
         // Holds either a pair of paths or a path and a filename.
         vector<rgb_param_pair> input_file_pairs;
+
+        string STRING_error_layer;
+        LoggerLevel *aLogger;
     };
 
     class rgb_command_help : public rgb_command
@@ -155,6 +165,78 @@ public:
         }
 
         virtual void process();
+    };
+
+    class rgb_command_verbose : public rgb_command
+    {
+    public:
+        rgb_command_verbose()
+        : rgb_command("-verbose", "RGB_CMD_HELP") {}
+
+        virtual ~rgb_command_verbose() {}
+
+        static bool match(string aParam)
+        {
+            if (aParam == "-verbose") {
+                return true;
+            }
+            return false;
+        }
+
+        virtual void init(vector<string> &aCmdParam) {
+             rgb_command::nothing_required(aCmdParam);
+             aLogger->setLevel(ENUM_VERBOSE);
+        }
+
+        virtual void process() { /* Do nothing */ };
+    };
+
+    class rgb_command_normal : public rgb_command
+    {
+    public:
+        rgb_command_normal()
+        : rgb_command("-normal", "RGB_CMD_HELP") {}
+
+        virtual ~rgb_command_normal() {}
+
+        static bool match(string aParam)
+        {
+            if (aParam == "-normal") {
+                return true;
+            }
+            return false;
+        }
+
+        virtual void init(vector<string> &aCmdParam) {
+             rgb_command::nothing_required(aCmdParam);
+             aLogger->setLevel(ENUM_NORMAL);
+        }
+
+        virtual void process() { /* Do nothing */ };
+    };
+
+    class rgb_command_brief : public rgb_command
+    {
+    public:
+        rgb_command_brief()
+        : rgb_command("-brief", "RGB_CMD_HELP") {}
+        
+        virtual ~rgb_command_brief() {}
+
+        static bool match(string aParam)
+        {
+            if (aParam == "-brief") {
+                return true;
+            }
+            return false;
+        }
+
+        virtual void init(vector<string> &aCmdParam) {
+             rgb_command::nothing_required(aCmdParam);
+             aLogger->setLevel(ENUM_BRIEF);
+        }
+
+        virtual void process() { /* Do nothing */ };
     };
 
     class rgb_command_extract : public rgb_command
@@ -292,6 +374,10 @@ public:
         string path2;
     };
 
+private:
+
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 #endif

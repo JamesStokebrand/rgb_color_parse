@@ -59,19 +59,19 @@ void rgb_fileio::open(string const& source, bool temp_file_wanted)
     if (source_file_stream.is_open())
     {
         // A file is already open! This is an error!
-        throw_exception(ENUM_SOURCE_FILE_ALREADY_OPEN,
+        aLogger->throw_exception(ENUM_SOURCE_FILE_ALREADY_OPEN,
             "Unable to open \"" + source + 
             "\".  File \"" + source_file_name + "\" has already been opened.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     source_file_stream.open(source.c_str());
     if (!source_file_stream.is_open())
     {
         // Failed to open source file.  Return error.
-        throw_exception(ENUM_UNABLE_TO_OPEN_SOURCE,
+        aLogger->throw_exception(ENUM_UNABLE_TO_OPEN_SOURCE,
             "Unable to open input file \"" + source + "\".", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     source_file_name = source;
@@ -85,9 +85,9 @@ void rgb_fileio::open(string const& source, bool temp_file_wanted)
         if (!temp_file_stream.is_open())
         {
             // Failed to open the temp file.  Return error.
-            throw_exception(ENUM_UNABLE_TO_OPEN_TEMP,
+            aLogger->throw_exception(ENUM_UNABLE_TO_OPEN_TEMP,
                 "Unable to open temp file \"" + temp_file_name + "\".", 
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
         }
         temp_file_opened = true;
     }
@@ -100,9 +100,9 @@ bool rgb_fileio::read_word(string &aWord)
     if (!source_file_stream.is_open())
     {
         // There is no open file! ... This is an error.
-        throw_exception(ENUM_UNABLE_TO_READ_SOURCE ,
+        aLogger->throw_exception(ENUM_UNABLE_TO_READ_SOURCE ,
                 "Unable to read.  There is no open file.", 
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // Read one word from the original file.
@@ -119,9 +119,9 @@ bool rgb_fileio::read_char(char &aChar)
     if (!source_file_stream.is_open())
     {
         // There is no open file! ... This is an error.
-        throw_exception(ENUM_UNABLE_TO_READ_SOURCE, 
+        aLogger->throw_exception(ENUM_UNABLE_TO_READ_SOURCE, 
             "Unable to read.  There is no open file.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__); 
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer); 
     }
 
     // Will read one char from the original file.
@@ -139,9 +139,9 @@ void rgb_fileio::write(string const &A)
     // Will write the string to the temp file.
     //  Fails if a temp file was not created at open()
     if (!temp_file_opened) {
-        throw_exception(ENUM_UNABLE_TO_WRITE_SOURCE,
+        aLogger->throw_exception(ENUM_UNABLE_TO_WRITE_SOURCE,
             "Unable to write.  Temp file was not created at open().", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     } else {
         temp_file_stream << A;
     }
@@ -152,9 +152,9 @@ void rgb_fileio::write(char const &A)
     // Will write the string to the temp file.
     //  Fails if a temp file was not created at open()
     if (!temp_file_opened) {
-        throw_exception(ENUM_UNABLE_TO_WRITE_SOURCE,
+        aLogger->throw_exception(ENUM_UNABLE_TO_WRITE_SOURCE,
             "Unable to write.  Temp file was not created at open().", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     } else {
         temp_file_stream << A;
     }
@@ -169,23 +169,23 @@ void rgb_fileio::overwrite()
     string bak_file(source_file_name + ".bak");
     int result= rename( source_file_name.c_str(), bak_file.c_str());
     if ( result != 0 ) {
-        throw_exception(ENUM_UNABLE_TO_RENAME_SOURCE,
+        aLogger->throw_exception(ENUM_UNABLE_TO_RENAME_SOURCE,
             "Unable to rename \"" + source_file_name + 
             "\" to \"" + bak_file + "\".", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
     result = rename( temp_file_name.c_str(), source_file_name.c_str());
     if ( result != 0 ) {
-        throw_exception(ENUM_UNABLE_TO_RENAME_TEMP,
+        aLogger->throw_exception(ENUM_UNABLE_TO_RENAME_TEMP,
             "Unable to rename \"" + temp_file_name + 
             "\" with to \"" + source_file_name + "\".", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
     result = remove(bak_file.c_str());
     if ( result != 0 ) {
-        throw_exception(ENUM_UNABLE_TO_DELETE_BACKUP,
+        aLogger->throw_exception(ENUM_UNABLE_TO_DELETE_BACKUP,
             "Unable to delete \"" + bak_file + "\".", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
 }
@@ -195,9 +195,9 @@ void rgb_fileio::close()
     if (!source_file_stream.is_open())
     {
         // There is no open file! ... This is an error.
-        throw_exception(ENUM_UNABLE_TO_CLOSE_SOURCE,
+        aLogger->throw_exception(ENUM_UNABLE_TO_CLOSE_SOURCE,
             "Unable to close.  There is no open file.", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__); 
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer); 
     }
 
     // Close the temp and source file.

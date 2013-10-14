@@ -93,9 +93,6 @@ enum EXECTION_STRING_ARRAY_LEVEL {
     ,ENUM_VERBOSE=2
 };
 
-// NOTE use this to change the amount of information provided for debugging
-const enum EXECTION_STRING_ARRAY_LEVEL CONST_ENUM_SOFTWARE_DEBUG_LEVEL = ENUM_BRIEF;
-
 enum EXCEPTION_STRING_ARRAY {
      ENUM_RGB_VALUE_BELOW_ZERO=0
     ,ENUM_RGB_VALUE_ABOVE_ONE
@@ -173,6 +170,16 @@ debug_method_name << endl << STRING_error_layer << ":ERROR_MSG: "
 #define DEBUG_STATE //
 #endif
 
+#if 0
+#define DEBUG_LOGGER_REFGET cout << __FUNCTION__ << " GET REF: " << _referenceCount << endl;
+#define DEBUG_LOGGER_REFRELEASE cout << __FUNCTION__ << " RELEASE REF: " << _referenceCount << endl;
+#define DEBUG_LOGGER_LEVEL cout << "LOGGER LEVEL :" << level << " " << this << endl;
+#else
+#define DEBUG_LOGGER_REFGET //
+#define DEBUG_LOGGER_REFRELEASE //
+#define DEBUG_LOGGER_LEVEL //
+#endif
+
 /* Exception Handling */
 class ErrException : public exception
 {
@@ -185,28 +192,45 @@ private:
    string s;
 };
 
-/* RGB Base includes the following helper methods:
-    - Aid in throwing exceptions.
-*/
-class rgb_base 
-{
-public:
-    rgb_base(const string &current_object)
-    : level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) {
-        STRING_error_layer = current_object;
-    };
+// Singleton class to hold the logger level.
+//  This allows it to be set and read by everyone.
+class LoggerLevel { 
+public: 
+    static LoggerLevel* getInstance() { 
+        if (NULL == _instance) { 
+            _instance = new LoggerLevel(); 
+        } 
+        _referenceCount++; 
+        DEBUG_LOGGER_REFGET
+        return _instance; 
+    }
+ 
+    static void releaseInstance() { 
+        _referenceCount--; 
+        DEBUG_LOGGER_REFRELEASE
+        if ((0 == _referenceCount) && (NULL != _instance)) { 
+            delete _instance; 
+            _instance = NULL; 
+        } 
+    }
 
-    virtual ~rgb_base() {}
+    enum EXECTION_STRING_ARRAY_LEVEL getLevel() { return level; }
+    void setLevel(enum EXECTION_STRING_ARRAY_LEVEL new_level) {
+        level = new_level;
+    }
 
     void throw_exception(
-            enum EXCEPTION_STRING_ARRAY x,
-            string ss, 
-            string debug_method_name,
-            string debug_file_name, 
-            int debug_line_number)
+            enum EXCEPTION_STRING_ARRAY const &x,
+            string const &ss,
+            string const &debug_method_name,
+            string const &debug_file_name,
+            int const &debug_line_number,
+            string const &STRING_error_layer)
     {
+        DEBUG_LOGGER_LEVEL
         stringstream anError;
-        if ((level == ENUM_BRIEF) || (level == ENUM_NORMAL))  {
+        if ((level == ENUM_BRIEF) ||
+            (level == ENUM_NORMAL))  {
             anError << exception_response[x][level];
         } else {
             anError << EXCEPTION_STRING_PREAMBLE << ss << endl;
@@ -215,23 +239,39 @@ public:
     }
 
     void throw_exception(
-            enum EXCEPTION_STRING_ARRAY x,
-            stringstream ss,
-            string debug_method_name,
-            string debug_file_name, 
-            int debug_line_number)
+            enum EXCEPTION_STRING_ARRAY const &x,
+            stringstream const &ss,
+            string const &debug_method_name,
+            string const &debug_file_name,
+            int const &debug_line_number,
+            string const &STRING_error_layer)
     {
-        throw_exception(x, ss.str(), debug_method_name.c_str(), debug_file_name, debug_line_number);
+        throw_exception(x,
+                ss.str(), 
+                debug_method_name.c_str(),
+                debug_file_name,
+                debug_line_number,
+                STRING_error_layer);
     };
 
     void throw_exception(string ss)
     {
         throw ErrException(ss.c_str());
     }
-
-    string STRING_error_layer;
+ 
+private: 
+    LoggerLevel(): level(ENUM_BRIEF) { }
+    virtual ~LoggerLevel() {}
+    LoggerLevel(const LoggerLevel&) {}
+    LoggerLevel& operator=(const LoggerLevel&) { 
+        return *this; 
+    }
+ 
+    static int _referenceCount; 
+    static LoggerLevel* _instance;
     enum EXECTION_STRING_ARRAY_LEVEL level;
 };
+ 
 
 /* 
     RGB State WORD 
@@ -257,27 +297,44 @@ public:
         {
             // This is a required word!
             // If it is not found as the first word it is an error.
-            stringstream anError;
-            if ((level == ENUM_BRIEF) || (level == ENUM_NORMAL))  {
-                anError << exception_response[ENUM_PARSE_ERROR][level];
-            } else {
-                anError << __FILE__ << " at " << __LINE__ << " :" 
-                    << ErrorLayer << ":" << __PRETTY_FUNCTION__ 
-                    << ": " << "\"" << aWord << "\" found but expected \""
-                    << ReqWord << "\".  Please verify the input file.";
+
+            // Is this word printable?
+            bool breakout = false;
+            for (int ll=0; ll < aWord.size(); ll++)
+            {
+                if (!isprint(aWord[ll]))
+                {
+                    aLogger->throw_exception(ENUM_PARSE_ERROR,
+                        "Binary data found but expected \""
+                        + ReqWord + "\".  Please verify the input file.",
+                        __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_WORD");
+                    breakout=true;
+                }
+                if (breakout) break;
             }
-            throw ErrException(anError.str());
+
+            if (!breakout) {
+                aLogger->throw_exception(ENUM_PARSE_ERROR,
+                    "\"" + aWord + "\" found but expected \""
+                    + ReqWord + "\".  Please verify the input file.",
+                    __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_WORD");
+            }
         }
     }
 
     // State machine defines.
-    rgb_state_word(STATE init) : state(init), level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) {}
-    virtual ~rgb_state_word() {};
+    rgb_state_word(STATE init) : state(init) {
+        aLogger = LoggerLevel::getInstance();
+    }
+    virtual ~rgb_state_word() {
+        aLogger->releaseInstance();
+    };
 
     void TRAN(STATE target) { state = static_cast<STATE>(target);}
     void process(const string &aWord) { (this->*state)(aWord); }
     STATE state;
-    enum EXECTION_STRING_ARRAY_LEVEL level;
+
+    LoggerLevel* aLogger;
 };
 
 /* 
@@ -291,11 +348,13 @@ public:
     typedef void (rgb_state_char::*STATE)(const char &aChar);
 
     rgb_state_char(STATE init)
-    : state(init)
-    , level(CONST_ENUM_SOFTWARE_DEBUG_LEVEL) { 
+    : state(init) {
         word_accumulate.clear();
+        aLogger = LoggerLevel::getInstance();
     }
-    virtual ~rgb_state_char() {}
+    virtual ~rgb_state_char() {
+        aLogger->releaseInstance();
+    }
 
     void STATE_verify_required_word(string const &ErrorLayer,
             const char &aChar,
@@ -316,16 +375,26 @@ public:
             {
                 // This is a required word to verify the source file
                 // is a VRML file.  NOT finding this word is an error.
-                stringstream anError;
-                if ((level == ENUM_BRIEF) || (level == ENUM_NORMAL))  {
-                    anError << exception_response[ENUM_PARSE_ERROR][level];
-                } else {
-                    anError << __FILE__ << " at " << __LINE__ << " :"
-                        << ErrorLayer << ":" << __PRETTY_FUNCTION__
-                        << ": " << "\"" << word_accumulate << "\" found but expected \""
-                        << ReqWord << "\".  Please verify the input file.";
+
+                // Is this word printable?
+                bool breakout=false;
+
+cout << "word_accumulate.size() = " << word_accumulate.size() << endl;
+                for (int ll=0; ll < word_accumulate.size(); ll++)
+                {
+                    if (!isprint(word_accumulate[ll]))
+                    {
+                        word_accumulate = "BINARY";
+                        breakout = true;
+                        break;
+                    }
+                    if (breakout) break;
                 }
-                throw ErrException(anError.str());
+
+                aLogger->throw_exception(ENUM_PARSE_ERROR, "\"" + word_accumulate + 
+                    "\" found but expected \"" + ReqWord + 
+                    "\".  Please verify the input file.",
+                    __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_CHAR");
             }
         }
         else
@@ -338,7 +407,8 @@ public:
     void TRAN(STATE target) { state = static_cast<STATE>(target);}
     void process(const char &aChar) { (this->*state)(aChar); }
     STATE state;
-    enum EXECTION_STRING_ARRAY_LEVEL level;
+
+    LoggerLevel* aLogger;
 
     string word_accumulate;
     stringstream temp_string;
@@ -360,14 +430,17 @@ std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 
 // This class holds the RGB and node name values found in the
 //  VRML files.
-class rgb_node : public rgb_base
+class rgb_node
 {
 public:
-    rgb_node() : rgb_base("RGB_NODE") {
+    rgb_node() : STRING_error_layer("RGB_NODE") {
+        aLogger = LoggerLevel::getInstance();
         clear(); 
     }
 
-    virtual ~rgb_node() {}
+    virtual ~rgb_node() {
+        aLogger->releaseInstance();
+    }
 
     void clear() { 
         // Inits everything to zero and clears the node name
@@ -431,6 +504,16 @@ public:
         return *this;
     }
 
+    // Copy constructor
+    rgb_node( const rgb_node& other )
+    : STRING_error_layer("RGB_NODE")
+    , name(other.name)
+    , red(other.red)
+    , green(other.green)
+    , blue(other.blue) {
+        aLogger->getInstance();
+    }
+
 private:
     void set_color(float &A, float const &B)
     {
@@ -439,14 +522,14 @@ private:
             stringstream anError;
             anError << "Value is below " << CONST_RGB_COLOR_VALUE_MIN << 
                     " and thus invalid.  Value not set.";
-            throw_exception(ENUM_RGB_VALUE_BELOW_ZERO, 
-                anError.str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            aLogger->throw_exception(ENUM_RGB_VALUE_BELOW_ZERO, anError.str(),
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
         } else if (B > CONST_RGB_COLOR_VALUE_MAX) {
             stringstream anError;
             anError << "Value is above " << CONST_RGB_COLOR_VALUE_MAX << 
                     " and thus invalid.  Value not set.";
-            throw_exception(ENUM_RGB_VALUE_ABOVE_ONE, 
-                anError.str(), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            aLogger->throw_exception(ENUM_RGB_VALUE_ABOVE_ONE, anError.str(), 
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
 
         }
         A = B; // success
@@ -457,6 +540,9 @@ private:
     float blue;
     string name;
 
+    string STRING_error_layer;
+    LoggerLevel *aLogger;
 };
 
 #endif
+

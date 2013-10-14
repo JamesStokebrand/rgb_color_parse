@@ -51,10 +51,10 @@
 #include "include/rgb_cmdline.h"
 #endif
 
-#if 1
+#if 0
 #define DEBUG_METHOD_COUT cout << __PRETTY_FUNCTION__ << endl;
 #else
-#define //
+#define DEBUG_METHOD_COUT //
 #endif
 
 void rgb_cmdline::parse_execute(const int &argc, char *argv[])
@@ -65,9 +65,9 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
         print_usage();
 
         // No command line arguments found.  This is an error.
-        throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND,
+        aLogger->throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND,
                 "No command line arguments found.  Nothing to do.",
-                __PRETTY_FUNCTION__, __FILE__, __LINE__);
+                __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     vector<string> list_of_commands;
@@ -105,7 +105,7 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
         cleanup(aListOfCmdObjects);
 
         // Throw it again ...
-        throw_exception(caught.what());
+        aLogger->throw_exception(caught.what());
     }
 
     // Free allocated commands
@@ -130,8 +130,23 @@ DEBUG_METHOD_COUT
             if (rgb_command_help::match(aCmdParams[0])) {
 //cout << "Found a -help command" << endl;
                 rgb_command_help *aCmd = new rgb_command_help;
-                aListOfCmds.push_back(aCmd);
+                aListOfCmds.insert(aListOfCmds.begin(),aCmd);
                 aCmd->init(aCmdParams);
+            } else if (rgb_command_brief::match(aCmdParams[0])) {
+//cout << "Found an -brief command" << endl;
+                rgb_command_brief *aCmd = new rgb_command_brief;
+                aCmd->init(aCmdParams);
+                delete aCmd; // No further processing needed ...
+            } else if (rgb_command_normal::match(aCmdParams[0])) {
+//cout << "Found an -normal command" << endl;
+                rgb_command_normal *aCmd = new rgb_command_normal;
+                aCmd->init(aCmdParams);
+                delete aCmd; // No further processing needed ...
+            } else if (rgb_command_verbose::match(aCmdParams[0])) {
+//cout << "Found an -verbose command" << endl;
+                rgb_command_verbose *aCmd = new rgb_command_verbose;
+                aCmd->init(aCmdParams);
+                delete aCmd; // No further processing needed ...
             } else if (rgb_command_extract::match(aCmdParams[0])) {
 //cout << "Found an -extract command" << endl;
                 rgb_command_extract *aCmd = new rgb_command_extract;
@@ -166,7 +181,7 @@ DEBUG_METHOD_COUT
     }
     catch (ErrException& caught) {
         cleanup(aListOfCmds);
-        throw_exception(caught.what());
+        aLogger->throw_exception(caught.what());
     }
 
     // Were all the parameters consumed?
@@ -178,9 +193,9 @@ DEBUG_METHOD_COUT
         cleanup(aListOfCmds);
 
         // Unknown parameter found ... this is an error.
-        throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND
+        aLogger->throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND
             ,"Found unknown command parameter \"" + aCmdParams[0] + "\"",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 }
 
@@ -200,9 +215,9 @@ void rgb_cmdline::rgb_command::nothing_required(vector<string> &aCmdParam)
     else
     {
         // Else its not the command switch we wanted ... this is an error.
-        throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH,
+        aLogger->throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH,
             "Unexpected command switch \"" + aCmdParam[0] + "\"",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 }
 
@@ -238,8 +253,8 @@ DEBUG_METHOD_COUT
             // Else its a command switch ... 
             anError += " found but unexpected command switch \"" + aCmdParam[0] + "\" in place of first parameter.";
         }
-        throw_exception(ENUM_MISSING_FIRST_PARAMETER, 
-            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        aLogger->throw_exception(ENUM_MISSING_FIRST_PARAMETER, 
+            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 }
 
@@ -249,8 +264,8 @@ void rgb_cmdline::rgb_command::one_required_one_optional(vector<string> &aCmdPar
     one_required(aCmdParam, p1);
 
     // Generate a second parameter... 
-    p2 = p1 + 
-        CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION;
+    //p2 = p1 + 
+        //CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION;
 
     // Extract optional second parameter ...
     // If the parameter list ISN'T empty
@@ -294,8 +309,8 @@ void rgb_cmdline::rgb_command::two_required(vector<string> &aCmdParam, string &p
             // Else its a command switch...
             anError += " found but unexpected command switch \"" + aCmdParam[0] + "\" in place of second parameter.";
         }
-        throw_exception(ENUM_MISSING_SECOND_PARAMETER,
-            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        aLogger->throw_exception(ENUM_MISSING_SECOND_PARAMETER,
+            anError, __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 }
 
@@ -310,9 +325,9 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
     {
         // Input file does not exist.  This is an error.
         // File or path does not exist ... this is an error.
-        throw_exception(ENUM_FILE_OR_DIRECTORY_NOT_FOUND,
+        aLogger->throw_exception(ENUM_FILE_OR_DIRECTORY_NOT_FOUND,
             "Parameter one: \"" + p1 + "\" does not exist.  Check the path or filename.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // It exists ... what kind of element is it?
@@ -340,19 +355,19 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
     } else {
         // Don't know what this element is ... its not a file or a directory.
         // This is an error.
-        throw_exception(ENUM_UNKNOWN_FILE_TYPE 
+        aLogger->throw_exception(ENUM_UNKNOWN_FILE_TYPE 
             ,"Parameter one: \"" + p1 + 
             "\" is an unknown file type.  Check the path or filename.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // Did we find any regular files in the P1 directory?
     if (path_listing.empty())
     {
         // No regular files found... nothing to do.
-        throw_exception(ENUM_NO_FILES_FOUND_IN_DIRECTORY,
+        aLogger->throw_exception(ENUM_NO_FILES_FOUND_IN_DIRECTORY,
             "No files found in \"" + p1 + "\".  Nothing to do.", 
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
 
@@ -372,10 +387,10 @@ void rgb_cmdline::rgb_command::first_path_must_exist_second_may_not_exist(
     if (exists(path2) && is_directory(path2))
     {
         // P2 can't be a directory...  this is an error.
-        throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
+        aLogger->throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
             "Parameter two: \"" + p2 + 
             "\" cannot be a directory.  Check the path or filename.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     if (file_paths.size() == 1)
@@ -410,15 +425,15 @@ void rgb_cmdline::rgb_command::both_paths_must_exist(string const &p1, string co
     path path2(p2);
     if (!exists(path2)) {
         // P2 doesn't exist!  This is an error.
-        throw_exception(ENUM_PARAM_TWO_NOT_FOUND,
+        aLogger->throw_exception(ENUM_PARAM_TWO_NOT_FOUND,
             "Parameter two: \"" + p2 + 
             "\" does not exist.  Check the path or filename.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     } else if (!is_regular_file(path2)) {
-        throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
+        aLogger->throw_exception(ENUM_PARAM_TWO_IS_DIRECTORY,
             "Parameter two: \"" + p2 + 
             "\" is a directory.  This is not a valid second parameter.  Check the path or filename.",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__);
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
     // P2 exists and is a regular file.  Push p1 an p2 into the file pair vector.

@@ -35,6 +35,5 @@ files.
 
 It requires BOOST::FILESYSTEM to work.
 
-TODO:  Updated code with a singleton to change logger levels.
-TODO:  Write a -diff command to show differences between config and VRML files.
+TODO:  Write a -diff command to show differences between config and VRML files. <br />
 
