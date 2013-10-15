@@ -20,33 +20,13 @@
 ##  This is a command line tool to extract, replace and rollback RGB nodes 
 ##   inside VRML V2.0 files.  (File extention WRL)
 ##
-## Usage:
-## ./RGB_color_parse -help
-##   - Displays this usage information
-## 
-## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
-## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
-##   - Extracts RGB node information from a single VRML file or all the 
-##      VRML files in a directory.
-## 
-## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
-##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
-##      match the ones found in a required RGB config file.
-## 
-## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
-##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
-##      a directory.  Requires a RGB config file.
-## 
-## ./RGB_color_parse -rollback <a_single_wrl_file>
-## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
-##   - Rollsback the RGB nodes previously changed from the "-replace" command.
-##      Requires a single VRML file or all the VMRL files found in a directory.
-##
 ## Filename: rgb_cmdline.h
 ##  This file defines the command line object that allows this program
 ##   to parse and execute commands from the command line.
+##
+## Usage: 
+##   -help  : Prints usage information
+##   -info  : Prints usage information
 ##
 */
 #ifndef __rgb_node_h__
@@ -68,14 +48,106 @@
 #include <boost/filesystem.hpp>
 using namespace boost::filesystem;
 
+#if 0
+#define DEBUG_METHOD_COUT cout << __PRETTY_FUNCTION__ << endl;
+#else
+#define DEBUG_METHOD_COUT //
+#endif
+
 class rgb_cmdline
 {
 public:
     class rgb_command;
     class rgb_param_pair;
 
+    // Used to create a vector of rgb_command match and factory methods.
+    typedef bool (*command_match_method)(string);
+    typedef rgb_command *(*command_factory_method)();
+
     rgb_cmdline() : STRING_error_layer("RGB_CMDLINE") {
         aLogger = LoggerLevel::getInstance();
+
+        // Make a list of the commands and the object to create when the command 
+        //  is found.
+        command_match temp;
+
+        // -help command
+        temp._match = rgb_command_help::match1;
+        temp._factory = rgb_command_help::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -info command
+        temp._match = rgb_command_help::match2;
+        temp._factory = rgb_command_help::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -verbose command
+        temp._match = rgb_command_logger_level::match1; 
+        temp._factory = rgb_command_logger_level::factory;
+        temp.immediate_delete = true;
+        available_commands.push_back(temp);
+
+        // -normal command
+        temp._match = rgb_command_logger_level::match2;
+        temp._factory = rgb_command_logger_level::factory;
+        temp.immediate_delete = true;
+        available_commands.push_back(temp);
+
+        // -brief command
+        temp._match = rgb_command_logger_level::match3;
+        temp._factory = rgb_command_logger_level::factory;
+        temp.immediate_delete = true;
+        available_commands.push_back(temp);
+
+        // -extract command
+        temp._match = rgb_command_extract::match1;
+        temp._factory = rgb_command_extract::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -e (extract) command
+        temp._match = rgb_command_extract::match2;
+        temp._factory = rgb_command_extract::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -verify command
+        temp._match = rgb_command_verify::match1;
+        temp._factory = rgb_command_verify::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -v (verify) command
+        temp._match = rgb_command_verify::match2;
+        temp._factory = rgb_command_verify::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -replace command
+        temp._match = rgb_command_replace::match1;
+        temp._factory = rgb_command_replace::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -r (replace) command
+        temp._match = rgb_command_replace::match2;
+        temp._factory = rgb_command_replace::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -rollback command
+        temp._match = rgb_command_rollback::match1;
+        temp._factory = rgb_command_rollback::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
+
+        // -roll (rollback) command
+        temp._match = rgb_command_rollback::match2;
+        temp._factory = rgb_command_rollback::factory;
+        temp.immediate_delete = false;
+        available_commands.push_back(temp);
     }
 
     virtual ~rgb_cmdline() {
@@ -104,10 +176,8 @@ public:
     class rgb_command
     {
     public:
-        rgb_command(string const &aCmd,
-                string const &rgb_base_name="RGB_COMMAND")
-        : STRING_error_layer(rgb_base_name)
-        , STRING_command_text(aCmd) { 
+        rgb_command(string const &rgb_base_name)
+        : STRING_error_layer(rgb_base_name) {
             aLogger = LoggerLevel::getInstance();
             input_file_pairs.clear();
         }
@@ -116,8 +186,7 @@ public:
             aLogger->releaseInstance();
         }
 
-        static bool match(string aParam)
-        {
+        static bool match(string aParam) {
             return false;
         }
 
@@ -132,6 +201,7 @@ public:
 
         virtual void init(vector<string> &aCmdParam) =0;
         virtual void process() =0;
+        static rgb_command *factory() { return NULL; }
 
         string STRING_command_text;
         string STRING_param_one;
@@ -139,6 +209,7 @@ public:
 
         // Holds either a pair of paths or a path and a filename.
         vector<rgb_param_pair> input_file_pairs;
+        vector<string> commands_handled;
 
         string STRING_error_layer;
         LoggerLevel *aLogger;
@@ -148,83 +219,66 @@ public:
     {
     public:
         rgb_command_help()
-        : rgb_command("-help", "RGB_CMD_HELP") {}
+        : rgb_command("RGB_CMD_HELP") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-help");
+            commands_handled.push_back("-info");
+        }
 
         virtual ~rgb_command_help() {}
 
-        static bool match(string aParam)
-        {
+        static bool match1(string aParam) {
             if (aParam == "-help") {
                 return true;
             }
             return false;
         }
 
+        static bool match2(string aParam) {
+            if (aParam == "-info") {
+                return true;
+            }
+            return false;
+        }
+
         virtual void init(vector<string> &aCmdParam) {
              rgb_command::nothing_required(aCmdParam);
         }
 
-        virtual void process();
+        virtual void process() { print_usage(); }
+        static rgb_command *factory() { return new rgb_command_help; }
     };
 
-    class rgb_command_verbose : public rgb_command
+    class rgb_command_logger_level : public rgb_command
     {
     public:
-        rgb_command_verbose()
-        : rgb_command("-verbose", "RGB_CMD_HELP") {}
+        rgb_command_logger_level()
+        : rgb_command("RGB_CMD_HELP") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-verbose");
+            commands_handled.push_back("-normal");
+            commands_handled.push_back("-brief");
+        }
 
-        virtual ~rgb_command_verbose() {}
+        virtual ~rgb_command_logger_level() {}
 
-        static bool match(string aParam)
-        {
+        static bool match1(string aParam) {
             if (aParam == "-verbose") {
                 return true;
             }
             return false;
         }
 
-        virtual void init(vector<string> &aCmdParam) {
-             rgb_command::nothing_required(aCmdParam);
-             aLogger->setLevel(ENUM_VERBOSE);
-        }
-
-        virtual void process() { /* Do nothing */ };
-    };
-
-    class rgb_command_normal : public rgb_command
-    {
-    public:
-        rgb_command_normal()
-        : rgb_command("-normal", "RGB_CMD_HELP") {}
-
-        virtual ~rgb_command_normal() {}
-
-        static bool match(string aParam)
-        {
+        static bool match2(string aParam) {
             if (aParam == "-normal") {
                 return true;
             }
             return false;
         }
 
-        virtual void init(vector<string> &aCmdParam) {
-             rgb_command::nothing_required(aCmdParam);
-             aLogger->setLevel(ENUM_NORMAL);
-        }
-
-        virtual void process() { /* Do nothing */ };
-    };
-
-    class rgb_command_brief : public rgb_command
-    {
-    public:
-        rgb_command_brief()
-        : rgb_command("-brief", "RGB_CMD_HELP") {}
-        
-        virtual ~rgb_command_brief() {}
-
-        static bool match(string aParam)
-        {
+        static bool match3(string aParam) {
             if (aParam == "-brief") {
                 return true;
             }
@@ -232,24 +286,47 @@ public:
         }
 
         virtual void init(vector<string> &aCmdParam) {
-             rgb_command::nothing_required(aCmdParam);
-             aLogger->setLevel(ENUM_BRIEF);
+            rgb_command::nothing_required(aCmdParam);
+            if (STRING_command_text == "-verbose") {
+                aLogger->setLevel(ENUM_VERBOSE);
+            } else if (STRING_command_text == "-normal") {
+                aLogger->setLevel(ENUM_NORMAL);
+            } else if (STRING_command_text == "-brief") {
+                aLogger->setLevel(ENUM_BRIEF);
+            } else {
+                // Dont recognize the command??
+                //  Shouldn't get here ... 
+                //  Set ENUM_VERBOSE
+                aLogger->setLevel(ENUM_VERBOSE);
+            }
         }
 
         virtual void process() { /* Do nothing */ };
+        static rgb_command *factory() { return new rgb_command_logger_level; }
     };
 
     class rgb_command_extract : public rgb_command
     {
     public:
         rgb_command_extract() 
-        : rgb_command("-extract", "RGB_CMD_EXTRACT") {}
+        : rgb_command("RGB_CMD_EXTRACT") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-extract");
+            commands_handled.push_back("-e");
+        }
 
         virtual ~rgb_command_extract() {}
 
-        static bool match(string aParam)
-        {
+        static bool match1(string aParam) {
             if (aParam == "-extract") {
+                return true;
+            }
+            return false;
+        }
+
+        static bool match2(string aParam) {
+            if (aParam == "-e") {
                 return true;
             }
             return false;
@@ -261,43 +338,31 @@ public:
         }
 
         virtual void process();
+        static rgb_command *factory() { return new rgb_command_extract; }
     };
 
     class rgb_command_verify : public rgb_command
     {
     public:
         rgb_command_verify()
-        : rgb_command("-verify", "RGB_CMD_VERIFY") {}
+        : rgb_command("RGB_CMD_VERIFY") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-verify");
+            commands_handled.push_back("-v");
+        }
 
         virtual ~rgb_command_verify() {}
 
-        static bool match(string aParam)
-        {
+        static bool match1(string aParam) {
             if (aParam == "-verify") {
                 return true;
             }
             return false;
         }
 
-        virtual void init(vector<string> &aCmdParam) {
-            two_required(aCmdParam,STRING_param_one,STRING_param_two);
-            both_paths_must_exist(STRING_param_one,STRING_param_two);
-        }
-
-        virtual void process();
-    };
-
-    class rgb_command_replace : public rgb_command
-    {
-    public:
-        rgb_command_replace()
-        : rgb_command("-replace", "RGB_CMD_REPLACE") {}
-
-        virtual ~rgb_command_replace() {}
-
-        static bool match(string aParam)
-        {
-            if (aParam == "-replace") {
+        static bool match2(string aParam) {
+            if (aParam == "-v") {
                 return true;
             }
             return false;
@@ -309,19 +374,67 @@ public:
         }
 
         virtual void process();
+        static rgb_command *factory() { return new rgb_command_verify; }
+    };
+
+    class rgb_command_replace : public rgb_command
+    {
+    public:
+        rgb_command_replace()
+        : rgb_command("RGB_CMD_REPLACE") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-replace");
+            commands_handled.push_back("-r");
+        }
+
+        virtual ~rgb_command_replace() {}
+
+        static bool match1(string aParam) {
+            if (aParam == "-replace") {
+                return true;
+            }
+            return false;
+        }
+
+        static bool match2(string aParam) {
+            if (aParam == "-r") {
+                return true;
+            }
+            return false;
+        }
+
+        virtual void init(vector<string> &aCmdParam) {
+            two_required(aCmdParam,STRING_param_one,STRING_param_two);
+            both_paths_must_exist(STRING_param_one,STRING_param_two);
+        }
+
+        virtual void process();
+        static rgb_command *factory() { return new rgb_command_replace; }
     };
 
     class rgb_command_rollback : public rgb_command
     {
     public:
         rgb_command_rollback()
-        : rgb_command("-rollback", "RGB_CMD_ROLLBACK") {}
+        : rgb_command("RGB_CMD_ROLLBACK") {
+            STRING_command_text.clear();
+            commands_handled.clear();
+            commands_handled.push_back("-rollback");
+            commands_handled.push_back("-roll");
+        }
 
         virtual ~rgb_command_rollback() {}
 
-        static bool match(string aParam)
-        {
+        static bool match1(string aParam) {
             if (aParam == "-rollback") {
+                return true;
+            }
+            return false;
+        }
+
+        static bool match2(string aParam) {
+            if (aParam == "-roll") {
                 return true;
             }
             return false;
@@ -345,6 +458,7 @@ public:
         }
 
         virtual void process();
+        static rgb_command *factory() { return new rgb_command_rollback; }
     };
 
     // This class holds the path object and a file name
@@ -375,6 +489,15 @@ public:
     };
 
 private:
+
+    struct command_match {
+        command_match_method _match;
+        command_factory_method _factory;
+        bool immediate_delete;
+    };
+
+    vector<command_match> available_commands;
+
 
     string STRING_error_layer;
     LoggerLevel *aLogger;

@@ -18,47 +18,22 @@
 ##  This is a command line tool to extract, replace and rollback RGB nodes 
 ##   inside VRML V2.0 files.  (File extention WRL)
 ##
-## Usage:
-## ./RGB_color_parse -help
-##   - Displays this usage information
-## 
-## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
-## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
-##   - Extracts RGB node information from a single VRML file or all the 
-##      VRML files in a directory.
-## 
-## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
-##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
-##      match the ones found in a required RGB config file.
-## 
-## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
-##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
-##      a directory.  Requires a RGB config file.
-## 
-## ./RGB_color_parse -rollback <a_single_wrl_file>
-## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
-##   - Rollsback the RGB nodes previously changed from the "-replace" command.
-##      Requires a single VRML file or all the VMRL files found in a directory.
-##
 ## Filename: rgb_cmdline.cpp
 ##  This file contains main() and the command line methods that allow it
 ##   to recognize command switches and arguments.  
+##
+## Usage: 
+##   -help  : Prints usage information
+##   -info  : Prints usage information
 ##
 */
 #ifndef __rgb_cmdline_h__
 #include "include/rgb_cmdline.h"
 #endif
 
-#if 0
-#define DEBUG_METHOD_COUT cout << __PRETTY_FUNCTION__ << endl;
-#else
-#define DEBUG_METHOD_COUT //
-#endif
-
 void rgb_cmdline::parse_execute(const int &argc, char *argv[])
 {
+DEBUG_METHOD_COUT
     // Do we have arguments to execute?
     if (argc <= 1)
     {
@@ -115,8 +90,8 @@ void rgb_cmdline::parse_execute(const int &argc, char *argv[])
 void rgb_cmdline::setup(vector<string> &aCmdParams, vector<rgb_command *> &aListOfCmds)
 {
 DEBUG_METHOD_COUT
-
     int pre_count = aCmdParams.size();
+    bool breakout = false;
 
     // Loop through the list of command line arguments until one is unrecognized 
     //  or the list goes to zero.
@@ -124,50 +99,23 @@ DEBUG_METHOD_COUT
     {
         while (!aCmdParams.empty())
         {
-//cout << "aCmdParam vector: " << aCmdParams << endl;
-//cout << "aListOfCmds vector: " << aListOfCmds << endl;
-            
-            if (rgb_command_help::match(aCmdParams[0])) {
-//cout << "Found a -help command" << endl;
-                rgb_command_help *aCmd = new rgb_command_help;
-                aListOfCmds.insert(aListOfCmds.begin(),aCmd);
-                aCmd->init(aCmdParams);
-            } else if (rgb_command_brief::match(aCmdParams[0])) {
-//cout << "Found an -brief command" << endl;
-                rgb_command_brief *aCmd = new rgb_command_brief;
-                aCmd->init(aCmdParams);
-                delete aCmd; // No further processing needed ...
-            } else if (rgb_command_normal::match(aCmdParams[0])) {
-//cout << "Found an -normal command" << endl;
-                rgb_command_normal *aCmd = new rgb_command_normal;
-                aCmd->init(aCmdParams);
-                delete aCmd; // No further processing needed ...
-            } else if (rgb_command_verbose::match(aCmdParams[0])) {
-//cout << "Found an -verbose command" << endl;
-                rgb_command_verbose *aCmd = new rgb_command_verbose;
-                aCmd->init(aCmdParams);
-                delete aCmd; // No further processing needed ...
-            } else if (rgb_command_extract::match(aCmdParams[0])) {
-//cout << "Found an -extract command" << endl;
-                rgb_command_extract *aCmd = new rgb_command_extract;
-                aListOfCmds.push_back(aCmd);
-                aCmd->init(aCmdParams);
-            } else if (rgb_command_verify::match(aCmdParams[0])) {
-//cout << "Found a -verify command" << endl;
-                rgb_command_verify *aCmd = new rgb_command_verify;
-                aListOfCmds.push_back(aCmd);
-                aCmd->init(aCmdParams);
-            } else if (rgb_command_replace::match(aCmdParams[0])) {
-//cout << "Found a -replace command" << endl;
-                rgb_command_replace *aCmd = new rgb_command_replace;
-                aListOfCmds.push_back(aCmd);
-                aCmd->init(aCmdParams);
-            } else if (rgb_command_rollback::match(aCmdParams[0])) {
-//cout << "Found a -rollback command" << endl;
-                rgb_command_rollback *aCmd = new rgb_command_rollback;
-                aListOfCmds.push_back(aCmd);
-                aCmd->init(aCmdParams);
-            }
+            for(vector<command_match>::const_iterator mm = available_commands.begin();
+                mm != available_commands.end(); mm++) {
+
+                if (mm->_match(aCmdParams[0])) {
+                    breakout = true;
+                    // Have a command match
+                    rgb_command *aCmd = mm->_factory();
+                    aCmd->init(aCmdParams);
+                    if (mm->immediate_delete) {
+                        // This command has completed ... delete it.
+                        delete aCmd;
+                    } else {
+                        aListOfCmds.push_back(aCmd);
+                    }
+                }
+                if (breakout) break;
+            }    
 
             // Did the command list size change?
             if (aCmdParams.size() == pre_count)
@@ -197,28 +145,46 @@ DEBUG_METHOD_COUT
             ,"Found unknown command parameter \"" + aCmdParams[0] + "\"",
             __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
+
+    // All parameters have been consumed ... is there any commands in the queue?
+    if(aListOfCmds.empty())
+    {
+        // No commands queued ... nothing to do.
+        print_usage();
+        aLogger->throw_exception(ENUM_NOTHING_TO_DO,
+            "No executable commands were found on the command line.  Nothing to do.",
+            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
+    }
 }
 
 void rgb_cmdline::rgb_command::nothing_required(vector<string> &aCmdParam)
 {
-    // No parameters required ... verify the command line switch matches
-    //  and remove it from the parameter list.
+DEBUG_METHOD_COUT
+    // No parameters required ... verify the command line switch(s) match
+    //  and remove the parameter from the parameter list.
+    for(vector<string>::const_iterator nn = commands_handled.begin();
+            nn != commands_handled.end(); nn++) {
 
-    // If the aCmdParam list isn't empty AND the first parameter starts with a dash.
-    if ((!aCmdParam.empty()) &&
-        (aCmdParam[0][0] == '-') &&
-        (aCmdParam[0] == STRING_command_text))
-    {
-        // Found the command we were expecting.   Remove it from the list.
-        aCmdParam.erase(aCmdParam.begin());
+//cout << "nn : " << *nn << endl;
+//cout << "aCmdParam[0] : " << aCmdParam[0] << endl;
+
+        if ((!aCmdParam.empty()) && 
+            (aCmdParam[0][0] == '-') &&
+            (*nn == aCmdParam[0]))
+        {
+            // Found the command we were expecting.   Remove it from the list.
+            aCmdParam.erase(aCmdParam.begin());
+            // Set the command text value.
+            STRING_command_text = *nn;
+            return;
+        } 
     }
-    else
-    {
-        // Else its not the command switch we wanted ... this is an error.
-        aLogger->throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH,
-            "Unexpected command switch \"" + aCmdParam[0] + "\"",
-            __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
-    }
+
+    // Else its not the command switch we wanted ... this is an error.
+    aLogger->throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH,
+        "Unexpected command switch \"" + aCmdParam[0] + "\"",
+        __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
+
 }
 
 void rgb_cmdline::rgb_command::one_required(vector<string> &aCmdParam, string &p1)
@@ -260,12 +226,12 @@ DEBUG_METHOD_COUT
 
 void rgb_cmdline::rgb_command::one_required_one_optional(vector<string> &aCmdParam, string &p1, string &p2)
 {
+DEBUG_METHOD_COUT
     // Extract ONE required and ONE optional parameters
     one_required(aCmdParam, p1);
 
     // Generate a second parameter... 
-    //p2 = p1 + 
-        //CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION;
+    //p2 = p1 + CONST_STRING_DEFAULT_RGB_NODE_FILE_EXTENTION;
 
     // Extract optional second parameter ...
     // If the parameter list ISN'T empty
@@ -281,6 +247,7 @@ void rgb_cmdline::rgb_command::one_required_one_optional(vector<string> &aCmdPar
 
 void rgb_cmdline::rgb_command::two_required(vector<string> &aCmdParam, string &p1, string &p2)
 {
+DEBUG_METHOD_COUT
     // Verify command switch is correct and extract first 
     //  required parameter
     one_required(aCmdParam, p1);
@@ -316,6 +283,7 @@ void rgb_cmdline::rgb_command::two_required(vector<string> &aCmdParam, string &p
 
 void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<path> &path_listing)
 {
+DEBUG_METHOD_COUT
     // Clear the file pairs
     path_listing.clear();
 
@@ -376,6 +344,7 @@ void rgb_cmdline::rgb_command::first_path_must_exist(string const &p1, vector<pa
 void rgb_cmdline::rgb_command::first_path_must_exist_second_may_not_exist(
     string const &p1, string const &p2)
 {
+DEBUG_METHOD_COUT
     // Get the file listing from the first parameter
     vector<path> file_paths;
     first_path_must_exist(p1, file_paths);
@@ -417,6 +386,7 @@ void rgb_cmdline::rgb_command::first_path_must_exist_second_may_not_exist(
 
 void rgb_cmdline::rgb_command::both_paths_must_exist(string const &p1, string const &p2)
 {
+DEBUG_METHOD_COUT
     // Get the file listing from the first parameter
     vector<path> file_paths;
     first_path_must_exist(p1, file_paths);
@@ -448,14 +418,9 @@ void rgb_cmdline::rgb_command::both_paths_must_exist(string const &p1, string co
     }
 }
 
-void rgb_cmdline::rgb_command_help::process()
-{
-    // Just print the usage ...
-    print_usage();
-}
-
 void rgb_cmdline::rgb_command_extract::process()
 {
+DEBUG_METHOD_COUT
     // Process each file
     rgb_extract anExtractObj;
     for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
@@ -486,6 +451,7 @@ cout << "P2 : " << ii->string1 << endl;
 
 void rgb_cmdline::rgb_command_verify::process()
 {
+DEBUG_METHOD_COUT
     // Verify
     rgb_extract anExtractObj;
     for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
@@ -517,6 +483,7 @@ cout << "P2 : " << ii->string1 << endl;
 
 void rgb_cmdline::rgb_command_replace::process()
 {
+DEBUG_METHOD_COUT
     // Replace
     rgb_replace aReplaceObj;
     for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
@@ -545,6 +512,7 @@ cout << "P2 : " << ii->path2 << endl;
 
 void rgb_cmdline::rgb_command_rollback::process()
 {
+DEBUG_METHOD_COUT
     // Replace
     rgb_rollback aRollbackObj;
     for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
@@ -610,6 +578,16 @@ int main(int argc, char* argv[])
     {
        // Just spew the message ... 
        cerr << e.code().message() << endl;
+    }
+    catch(exception& e)
+    {
+        cerr << "Uncaught Exception!" << endl;
+        cout << e.what() << endl;
+    }
+    catch(...)
+    {
+       // Default ... 
+       cerr << "Uncaught Exception!" << endl;
     }
     return 0;
 }

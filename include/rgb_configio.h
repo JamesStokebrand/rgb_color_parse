@@ -20,32 +20,12 @@
 ##  This is a command line tool to extract, replace and rollback RGB nodes 
 ##   inside VRML V2.0 files.  (File extention WRL)
 ##
-## Usage:
-## ./RGB_color_parse -help
-##   - Displays this usage information
-## 
-## ./RGB_color_parse -extract <a_single_wrl_file> [optional_config_file]
-## ./RGB_color_parse -extract <a_directory_containing_wrl_files>
-##   - Extracts RGB node information from a single VRML file or all the 
-##      VRML files in a directory.
-## 
-## ./RGB_color_parse -verify <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -verify <a_directory_containing_wrl_files> <required_config_file>
-##   - Verifies that the RGB nodes in a single VRML or all the files in a directory
-##      match the ones found in a required RGB config file.
-## 
-## ./RGB_color_parse -replace <a_single_wrl_file> <required_config_file>
-## ./RGB_color_parse -replace <a_directory_containing_wrl_files> <required_config_file>
-##   - Replaces the RGB nodes in a single VRML file or all the VRML files found in 
-##      a directory.  Requires a RGB config file.
-## 
-## ./RGB_color_parse -rollback <a_single_wrl_file>
-## ./RGB_color_parse -rollback <a_directory_containing_wrl_fles>
-##   - Rollsback the RGB nodes previously changed from the "-replace" command.
-##      Requires a single VRML file or all the VMRL files found in a directory.
-##
 ## Filename: rgb_configio.h
 ##  This file defines the object needed to parse and create RGB config files.
+##
+## Usage: 
+##   -help  : Prints usage information
+##   -info  : Prints usage information
 ##
 */
 
