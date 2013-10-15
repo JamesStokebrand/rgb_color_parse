@@ -114,7 +114,7 @@ DEBUG_METHOD_COUT
                         aListOfCmds.push_back(aCmd);
                     }
                 }
-                if (breakout) break;
+                if (breakout) { breakout = false; break; }
             }    
 
             // Did the command list size change?
