@@ -46,8 +46,8 @@ class rgb_rollback
 {
 public:
     rgb_rollback()
-        : STRING_error_layer("RGB_ROLLBACK") 
-        , rgb_state_char((STATE)&rgb_rollback::STATE_verify_VRML)
+        : rgb_state_char((STATE)&rgb_rollback::STATE_verify_VRML)
+        , STRING_error_layer("RGB_ROLLBACK") 
     {
         aLogger = LoggerLevel::getInstance();
         srcFileIO = NULL;

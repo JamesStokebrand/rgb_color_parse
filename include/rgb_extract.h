@@ -36,9 +36,8 @@ class rgb_extract : public rgb_state_word
 {
 public:
     rgb_extract() 
-    : STRING_error_layer("RGB_PARSE")
-    , rgb_state_word((STATE)&rgb_extract::STATE_verify_VRML)
-    {
+    : rgb_state_word((STATE)&rgb_extract::STATE_verify_VRML)
+    , STRING_error_layer("RGB_PARSE") {
         aLogger = LoggerLevel::getInstance();
         clear();
     }; 
@@ -77,9 +76,9 @@ private:
 
     string in_file_name;
     string last_word;
-    vector<rgb_node> rgb_list;
-    rgb_node temp_node;
     string STRING_error_layer;
+    rgb_node temp_node;
+    vector<rgb_node> rgb_list;
     LoggerLevel *aLogger;
 
 };

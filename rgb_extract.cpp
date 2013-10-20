@@ -62,9 +62,10 @@ void rgb_extract::extract_nodes(string const &in_file, vector<rgb_node> &rgb_lis
 
 #if 0
     cout << "Number of nodes found: " << rgb_list.size() << endl;
-    for (vector<rgb_node>::iterator it = rgb_list.begin(); it != rgb_list.end(); it++)
+    //for (vector<rgb_node>::iterator it = rgb_list.begin(); it != rgb_list.end(); it++)
+    for (rgb_node it : rgb_list )
     {
-        cout << *it << endl;
+        cout << it << endl;
     }
 #endif
 

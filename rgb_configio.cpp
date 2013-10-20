@@ -123,7 +123,7 @@ void rgb_configio::create_node_config(vector<rgb_node> const &node_vector,
 
     config << CONST_STRING_CONFIG_NUM_NODES_KEYWORD << " " << node_vector.size() << "\n";
     //for (vector<rgb_node>::iterator it = node_vector.begin(); it < node_vector.end(); it++ ) {
-    for (int ii = 0; ii < node_vector.size(); ii++) {
+    for (unsigned int ii = 0; ii < node_vector.size(); ii++) {
         config << CONST_STRING_CONFIG_NODE_KEYWORD << " ";
         config << node_vector[ii].get_name() << " ";
         config << node_vector[ii].get_red() << " ";
@@ -238,7 +238,7 @@ void rgb_configio::STATE_read_BLUE(string const &aWord)
     parse_temp_node.clear();
 }
 
-void rgb_configio::STATE_NOOP(string const &aWord)
+void rgb_configio::STATE_NOOP(string)
 {
     // Do nothing...
 }

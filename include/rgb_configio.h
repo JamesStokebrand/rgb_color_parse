@@ -37,9 +37,8 @@ class rgb_configio : public rgb_state_word
 {
 public:
     rgb_configio()
-    : STRING_error_layer("RGB_CONFIGIO")
-    , rgb_state_word((STATE)&rgb_configio::STATE_seek_START)
-    {
+    : rgb_state_word((STATE)&rgb_configio::STATE_seek_START)
+    , STRING_error_layer("RGB_CONFIGIO") {
         aLogger = LoggerLevel::getInstance();
         clear();
     }
@@ -80,7 +79,7 @@ private:
     void STATE_read_RED(string const &aWord);
     void STATE_read_GREEN(string const &aWord);
     void STATE_read_BLUE(string const &aWord);
-    void STATE_NOOP(string const &aWord);
+    void STATE_NOOP(string);
 
     rgb_node parse_temp_node;
     vector<rgb_node> parse_config_vector;

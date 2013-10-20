@@ -46,8 +46,8 @@ class rgb_replace
 {
 public:
     rgb_replace() 
-    : STRING_error_layer("RGB_REPLACE")
-    , rgb_state_char((STATE)&rgb_replace::STATE_verify_VRML) {
+    : rgb_state_char((STATE)&rgb_replace::STATE_verify_VRML)
+    , STRING_error_layer("RGB_REPLACE") {
         aLogger = LoggerLevel::getInstance();
         srcFileIO = NULL;
     }

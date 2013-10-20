@@ -30,6 +30,7 @@
 ##
 */
 #include <string>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -120,7 +121,7 @@ const string exception_response[ENUM_LAST_ELEMENT][2] = {
 ,{"Unexpected command switch." ,"Unexpected command switch found." }
 ,{"Missing first parameter." ,"Missing first parameter." }
 ,{"Missing second parameter." ,"Missing second parameter." } // 10
-,{"File or directory not found." ,"Parameter one file or directory does not exist." }
+,{"Parameter file or directory not found." ,"The parameter one file or directory does not exist." }
 ,{"Unknown file type." ,"Parameter one is of unknown file type." }
 ,{"No files found." ,"No files found in directory." }
 ,{"File expected but directory found." ,"Parameter two is a directory.  File expected." }
@@ -269,8 +270,7 @@ public:
     void STATE_verify_required_word(string const &ErrorLayer,
             const string &aWord,
             const string &ReqWord,
-            STATE nextState)
-    {
+            STATE nextState) {
         if (aWord == ReqWord)
         {
             TRAN(nextState);
@@ -287,7 +287,7 @@ public:
             } else {
                 // Is this word printable?
                 bool breakout = false;
-                for (int ll=0; ll < aWord.size(); ll++)
+                for (unsigned int ll=0; ll < aWord.size(); ll++)
                 {
                     if (!isprint(aWord[ll]))
                     {
@@ -304,8 +304,8 @@ public:
                 }
 
                 // Throw it
-                aLogger->throw_exception(x, anError,
-                    __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_WORD");
+                aLogger->throw_exception(x, anError, __PRETTY_FUNCTION__,
+                    __FILE__, __LINE__, ErrorLayer);
             }
         }
     }
@@ -373,7 +373,7 @@ public:
                     // Is this word printable?
                     bool breakout=false;
 
-                    for (int ll=0; ll < word_accumulate.size(); ll++)
+                    for (unsigned int ll=0; ll < word_accumulate.size(); ll++)
                     {
                         if (!isprint(word_accumulate[ll]))
                         {
@@ -388,8 +388,8 @@ public:
                             ReqWord + "\".  Please verify the input file.";
                     }
 
-                    aLogger->throw_exception(x, anError, 
-                        __PRETTY_FUNCTION__, __FILE__, __LINE__, "RGB_STATE_CHAR");
+                    aLogger->throw_exception(x, anError, __PRETTY_FUNCTION__,
+                        __FILE__, __LINE__, ErrorLayer);
                 }
             }
             else
@@ -502,10 +502,10 @@ public:
     // Copy constructor
     rgb_node( const rgb_node& other )
     : STRING_error_layer("RGB_NODE")
-    , name(other.name)
     , red(other.red)
     , green(other.green)
-    , blue(other.blue) {
+    , blue(other.blue) 
+    , name(other.name) {
         aLogger->getInstance();
     }
 
@@ -530,12 +530,13 @@ private:
         A = B; // success
     }
 
+    string STRING_error_layer;
+
     float red;
     float green;
     float blue;
     string name;
 
-    string STRING_error_layer;
     LoggerLevel *aLogger;
 };
 

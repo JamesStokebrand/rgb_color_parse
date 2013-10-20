@@ -186,7 +186,7 @@ public:
             aLogger->releaseInstance();
         }
 
-        static bool match(string aParam) {
+        static bool match(string) {
             return false;
         }
 
@@ -289,10 +289,13 @@ public:
             rgb_command::nothing_required(aCmdParam);
             if (STRING_command_text == "-verbose") {
                 aLogger->setLevel(ENUM_VERBOSE);
+//cout << "LOGGER Setting VERBOSE" << endl;
             } else if (STRING_command_text == "-normal") {
                 aLogger->setLevel(ENUM_NORMAL);
+//cout << "LOGGER Setting NORMAL" << endl;
             } else if (STRING_command_text == "-brief") {
                 aLogger->setLevel(ENUM_BRIEF);
+//cout << "LOGGER Setting BRIEF" << endl;
             } else {
                 // Dont recognize the command??
                 //  Shouldn't get here ... 

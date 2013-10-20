@@ -90,7 +90,7 @@ DEBUG_METHOD_COUT
 void rgb_cmdline::setup(vector<string> &aCmdParams, vector<rgb_command *> &aListOfCmds)
 {
 DEBUG_METHOD_COUT
-    int pre_count = aCmdParams.size();
+    unsigned int pre_count = aCmdParams.size();
     bool breakout = false;
 
     // Loop through the list of command line arguments until one is unrecognized 
@@ -99,15 +99,13 @@ DEBUG_METHOD_COUT
     {
         while (!aCmdParams.empty())
         {
-            for(vector<command_match>::const_iterator mm = available_commands.begin();
-                mm != available_commands.end(); mm++) {
-
-                if (mm->_match(aCmdParams[0])) {
+            for(command_match mm : available_commands) {
+                if (mm._match(aCmdParams[0])) {
                     breakout = true;
                     // Have a command match
-                    rgb_command *aCmd = mm->_factory();
+                    rgb_command *aCmd = mm._factory();
                     aCmd->init(aCmdParams);
-                    if (mm->immediate_delete) {
+                    if (mm.immediate_delete) {
                         // This command has completed ... delete it.
                         delete aCmd;
                     } else {
@@ -141,8 +139,9 @@ DEBUG_METHOD_COUT
         cleanup(aListOfCmds);
 
         // Unknown parameter found ... this is an error.
-        aLogger->throw_exception(ENUM_NO_CMD_ARGUMENTS_FOUND
-            ,"Found unknown command parameter \"" + aCmdParams[0] + "\"",
+        aLogger->setLevel(ENUM_VERBOSE); // Force VERBOSE for this error.
+        aLogger->throw_exception(ENUM_UNEXPECTED_COMMAND_SWITCH
+            ,"Found unknown command \"" + aCmdParams[0] + "\"  Exiting.",
             __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
     }
 
@@ -151,6 +150,7 @@ DEBUG_METHOD_COUT
     {
         // No commands queued ... nothing to do.
         print_usage();
+        aLogger->setLevel(ENUM_VERBOSE); // Force VERBOSE for this error.
         aLogger->throw_exception(ENUM_NOTHING_TO_DO,
             "No executable commands were found on the command line.  Nothing to do.",
             __PRETTY_FUNCTION__, __FILE__, __LINE__, STRING_error_layer);
@@ -162,20 +162,19 @@ void rgb_cmdline::rgb_command::nothing_required(vector<string> &aCmdParam)
 DEBUG_METHOD_COUT
     // No parameters required ... verify the command line switch(s) match
     //  and remove the parameter from the parameter list.
-    for(vector<string>::const_iterator nn = commands_handled.begin();
-            nn != commands_handled.end(); nn++) {
+    for(string nn : commands_handled) {
 
 //cout << "nn : " << *nn << endl;
 //cout << "aCmdParam[0] : " << aCmdParam[0] << endl;
 
         if ((!aCmdParam.empty()) && 
             (aCmdParam[0][0] == '-') &&
-            (*nn == aCmdParam[0]))
+            (nn == aCmdParam[0]))
         {
             // Found the command we were expecting.   Remove it from the list.
             aCmdParam.erase(aCmdParam.begin());
             // Set the command text value.
-            STRING_command_text = *nn;
+            STRING_command_text = nn;
             return;
         } 
     }
@@ -312,12 +311,11 @@ DEBUG_METHOD_COUT
                 back_inserter(list_of_directory_elements));
 
         // Now sort out the regular files from everything else.
-        for(vector<path>::const_iterator ii = list_of_directory_elements.begin();
-            ii != list_of_directory_elements.end(); ii++) {
-            if (is_regular_file(*ii)) {
+        for(path ii : list_of_directory_elements) {
+            if (is_regular_file(ii)) {
                 // Push the listing of regular files into the 
                 //  file pairs vector.
-                path_listing.push_back(*ii);
+                path_listing.push_back(ii);
             }
         }
     } else {
@@ -373,12 +371,10 @@ DEBUG_METHOD_COUT
     {
         // Else many files found in the directory
         rgb_param_pair temp;
-        for(vector<path>::const_iterator ii = file_paths.begin();
-            ii != file_paths.end(); ii++)
-        {
+        for(path ii : file_paths) {
             // Place p1 in the file pair vector.
             //  Don't bother putting p2 into the vector.
-            temp.set(*ii);
+            temp.set(ii);
             input_file_pairs.push_back(temp);
         }
     }
@@ -408,12 +404,10 @@ DEBUG_METHOD_COUT
 
     // P2 exists and is a regular file.  Push p1 an p2 into the file pair vector.
     rgb_param_pair temp;
-    for(vector<path>::const_iterator ii = file_paths.begin();
-        ii != file_paths.end(); ii++)
-    {
+    for(path ii : file_paths) {
         // Place p1 in the file pair vector.
         //  Don't bother putting p2 into the vector.
-        temp.set(*ii, p2);
+        temp.set(ii, p2);
         input_file_pairs.push_back(temp);
     }
 }
@@ -423,19 +417,18 @@ void rgb_cmdline::rgb_command_extract::process()
 DEBUG_METHOD_COUT
     // Process each file
     rgb_extract anExtractObj;
-    for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
-        ii != input_file_pairs.end(); ii++) {
+    for(rgb_param_pair ii : input_file_pairs ) {
 
-        cout << "Extract : " << ii->path1.filename().string() << " " << ii->path2;
+        cout << "Extract : " << ii.path1.filename().string() << " " << ii.path2;
 
         try
         {
 
 #if 0
-cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
-cout << "P2 : " << ii->string1 << endl;
+cout << endl << endl << "P1 : " << canonical(ii.path1).string() << endl;
+cout << "P2 : " << ii.string1 << endl;
 #endif
-            anExtractObj.extract(canonical(ii->path1).string(), ii->path2);
+            anExtractObj.extract(canonical(ii.path1).string(), ii.path2);
             cout << " - SUCCESS" << endl;
         }
         catch (ErrException& e)
@@ -454,17 +447,16 @@ void rgb_cmdline::rgb_command_verify::process()
 DEBUG_METHOD_COUT
     // Verify
     rgb_extract anExtractObj;
-    for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
-        ii != input_file_pairs.end(); ii++) {
+    for(rgb_param_pair ii : input_file_pairs) {
 
-        cout << "Verify : " << ii->path1.filename().string() << " " << ii->path2;
+        cout << "Verify : " << ii.path1.filename().string() << " " << ii.path2;
         try
         {
 #if 0
-cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
-cout << "P2 : " << ii->string1 << endl;
+cout << endl << endl << "P1 : " << canonical(ii.path1).string() << endl;
+cout << "P2 : " << ii.string1 << endl;
 #endif
-            if (anExtractObj.verify(canonical(ii->path1).string(), ii->path2)) {
+            if (anExtractObj.verify(canonical(ii.path1).string(), ii.path2)) {
                 cout << " - MATCH" << endl;
             } else {
                 cout << " - no match" << endl;
@@ -486,17 +478,16 @@ void rgb_cmdline::rgb_command_replace::process()
 DEBUG_METHOD_COUT
     // Replace
     rgb_replace aReplaceObj;
-    for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
-        ii != input_file_pairs.end(); ii++) {
+    for(rgb_param_pair ii : input_file_pairs ) {
 
-        cout << "Replace : " << ii->path1.filename().string() << " " << ii->path2;
+        cout << "Replace : " << ii.path1.filename().string() << " " << ii.path2;
         try
         {
 #if 0
-cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
-cout << "P2 : " << ii->path2 << endl;
+cout << endl << endl << "P1 : " << canonical(ii.path1).string() << endl;
+cout << "P2 : " << ii.path2 << endl;
 #endif
-            aReplaceObj.replace(canonical(ii->path1).string(), ii->path2);
+            aReplaceObj.replace(canonical(ii.path1).string(), ii.path2);
             cout << " - SUCCESS" << endl;
         }
         catch (ErrException& e)
@@ -515,16 +506,15 @@ void rgb_cmdline::rgb_command_rollback::process()
 DEBUG_METHOD_COUT
     // Replace
     rgb_rollback aRollbackObj;
-    for(vector<rgb_param_pair>::const_iterator ii = input_file_pairs.begin();
-        ii != input_file_pairs.end(); ii++) {
+    for(rgb_param_pair ii : input_file_pairs) {
 
-        cout << "Rollback : " << ii->path1.filename().string();
+        cout << "Rollback : " << ii.path1.filename().string();
         try
         {
 #if 0
-cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
+cout << endl << endl << "P1 : " << canonical(ii.path1).string() << endl;
 #endif
-            aRollbackObj.rollback(canonical(ii->path1).string());
+            aRollbackObj.rollback(canonical(ii.path1).string());
             cout << " - SUCCESS" << endl;
         }
         catch (ErrException& e)
@@ -541,25 +531,26 @@ cout << endl << endl << "P1 : " << canonical(ii->path1).string() << endl;
 void rgb_cmdline::print_usage()
 {
 cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -help" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -info" << endl;
 cout << "  - Displays this usage information" << endl;
 cout << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_single_wrl_file> [optional_config_file]" << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <a_directory_containing_wrl_files>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -extract <single_file_or_directory> [optional_config_file]" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -e <single_file_or_directory> [optional_config_file]" << endl;
 cout << "  - Extracts RGB node information from a single VRML file or all the" << endl;
 cout << "     VRML files in a directory." << endl;
 cout << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_single_wrl_file> <required_config_file>" << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <a_directory_containing_wrl_files> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -verify <single_file_or_directory> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -v <single_file_or_directory> <required_config_file>" << endl;
 cout << "  - Verifies that the RGB nodes in a single VRML or all the files in a directory" << endl;
 cout << "     match the ones found in a required RGB config file." << endl;
 cout << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_single_wrl_file> <required_config_file>" << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <a_directory_containing_wrl_files> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -replace <single_file_or_directory> <required_config_file>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -r <single_file_or_directory> <required_config_file>" << endl;
 cout << "  - Replaces the RGB nodes in a single VRML file or all the VRML files found in " << endl;
 cout << "     a directory.  Requires a RGB config file." << endl;
 cout << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_single_wrl_file>" << endl;
-cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <a_directory_containing_wrl_fles>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -rollback <single_file_or_directory>" << endl;
+cout << CONST_STRING_DEFAULT_ARGUMENT_ZERO << " -roll <single_file_or_directory>" << endl;
 cout << "  - Rollsback the RGB nodes previously changed from the \"-replace\" command." << endl;
 cout << "     Requires a single VRML file or all the VMRL files found in a directory." << endl; 
 cout << endl;
